@@ -1,0 +1,36 @@
+
+img{
+    display: block;
+    margin: 0 auto;
+}
+header {
+	margin-left: 500px;
+	font-size: 50px;
+	font-style: oblique;
+	font-family:Courier New;
+
+}
+
+
+
+body {
+	height:2000;
+	width: 1200;
+	background-color: #003d80;
+}
+
+
+canvas {
+	margin: 0 auto;
+	margin-top: 50px;
+	margin-left: 120px;
+	border:8px solid white;
+	border-radius: 4px;
+}
+
+#controls {
+	text-align: center;
+	font-size: 30px;
+	font-family:Courier New;
+	font-style: oblique;
+}

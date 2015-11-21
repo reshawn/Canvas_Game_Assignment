@@ -14,10 +14,7 @@ var walking = false; //condition for animation in progress
 
 addEventListener("keydown", function (e){
 	keysDown[e.keyCode] = true;
-	still = false;
-
-	
-	
+		
 }, false); //false; default useCapture value
 
 addEventListener("keyup", function (e){
@@ -42,7 +39,7 @@ var knight = {
 
 //position knight
 knight.x = (canvas.width / 2 - knight.width / 2);
-knight.y = (canvas.height - 200) - (knight.height);
+knight.y = (canvas.height - 100) - (knight.height);
 
 knightImageReady = false;
 knightImage = new Image();
@@ -50,23 +47,26 @@ knightImage.onload = function () {
 	knightImageReady = true;
 };
 
-knightImage.src = "combine_images.png";
+knightImage.src = "images/combine_images.png";
 
 var handleInput = function () {
 	// Stop moving the playa
 	knight.direction = 0;
 
 	if (37 in keysDown){
-		if (walking==true) { // Left
+		// if (walking==true) { // Left
 		knight.direction = -1;
-		}
+		still=false;
+		
+		// }
 	}
 
 
 	if (39 in keysDown){
-		if (walking==true) { // right
+		// if (walking==true) { // right
 		knight.direction = 1;
-		}
+		still=false;
+		// }
 	}
 
 
@@ -124,7 +124,7 @@ var render = function () {
 	ctx.fillStyle = "grey";
 	ctx.fillRect(0,0,canvas.width,canvas.height);
 	ctx.fillStyle = "black";
-	ctx.fillRect(0,(canvas.height-200),canvas.width,(canvas.height - 200));
+	ctx.fillRect(0,(canvas.height-100),canvas.width,(canvas.height - 200));
 
 	if (knightImageReady) {
 		var spriteX = (
