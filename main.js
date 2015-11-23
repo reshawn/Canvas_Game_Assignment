@@ -9,9 +9,6 @@ var ctx= canvas.getContext("2d");
 
 //keyboard events
 var keysDown = {};
-var still = true; //condition for single frame when not moving, i.e not walking
-var walking = false; //condition for walk animation in progress
-var midAir = false;
 
 
 addEventListener("keydown", function (e){
@@ -28,7 +25,9 @@ addEventListener("keyup", function (e){
 }, false);
 
 
-
+var still = true; //condition for single frame when not moving, i.e not walking
+var walking = false; //condition for walk animation in progress
+var midAir = false;
 var gravity = 0.5;
 var velocityY = 0;
 
@@ -48,8 +47,6 @@ var knight = {
 	airTimer: 0,
 	jumpTime: 400,
 	facing: "right",
-	jSpeed: 200,
-	airDirection: 0,
 	onGround: true,
 	jumping: false
 };
@@ -88,10 +85,10 @@ var handleInput = function () {
 		// }
 	}
 
-	if (38 in keysDown || 32 in keysDown && knight.onGround===true){ //up
+	if (38 in keysDown && knight.onGround === true || 32 in keysDown && knight.onGround === true){ //up
 		knight.jumping = true;
-		// velocityY = -5;
-		// gravity = 1;
+		velocityY = -12;
+		gravity = 0.5;
 
 	}
 
@@ -124,18 +121,6 @@ var update = function (elapsed) {
 
 // JUMPING FRAME *******************************************************************************
 	if ((knight.jumping === true)) {
-		knight.airDirection = 1;
-		knight.airTimer+= elapsed;
-		console.log(knight.airTimer);
-		if (knight.airTimer == knight.jumpTime)
-			knight.airDirection = 0;
-		if (knight.airTimer < knight.jumpTime)
-			midAir = true;
-		if (knight.airTimer > knight.jumpTime) {
-			knight.airTimer = 0;
-			knight.jumping = false;
-			knight.airDirection = -1;
-		}
 		
 		if (knight.facing === "right") // right jump
 			knight.jumpSet = 0;
@@ -174,23 +159,17 @@ var update = function (elapsed) {
 		knight.onGround = true;
 		midAir = false;
 	}
-	if (knight.jumping === true || knight.onGround === false){
-	// 	velocityY += gravity;
-	// 	knight.y += velocityY;
-	// 	console.log(velocityY);
-	// 	if (knight.y > (canvas.height-100 - knight.height)){
-	// 		console.log("u mad bro");
-	// 		knight.y = canvas.height-100 - knight.height;
-	// 		velocityY = 0;
-	// 		gravity = 0;}
+	
 
-
-		var move = (knight.jSpeed*elapsed/1000);
-		knight.y -= Math.round(move * knight.airDirection);
+	if (knight.jumping === true || knight.onGround === false){	
+		velocityY += gravity;
+		knight.y += velocityY;
+		if (knight.y > (canvas.height-100 - knight.height)){
+			console.log("u mad bro");
+			knight.y = canvas.height-100 - knight.height;
+			velocityY = 0;
+			gravity = 0;}
 	}
-
-
-
 
 };
 
@@ -254,7 +233,7 @@ var main = function () {
 
 // Start the main game loop!
 var last = Date.now();
-setInterval(main, 1);
+setInterval(main, 1000/60);
 
 
 
