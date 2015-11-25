@@ -55,13 +55,52 @@ var knight = {
 knight.x = (canvas.width / 2 - knight.width / 2);
 knight.y = (canvas.height - 100) - (knight.height);
 
-knightImageReady = false;
-knightImage = new Image();
+var knightImageReady = false;
+var knightImage = new Image();
 knightImage.onload = function () {
 	knightImageReady = true;
 };
 
 knightImage.src = "images/combine_images.png";
+
+var enemies = [];
+
+var createEnemy = function(){
+    var enemy = {
+        x: 0,
+        y: 0,
+        width: 64,
+        height: 64,
+        speed: 250,
+        direction: 0,
+        walkSet: 0,
+        jumpSet: 0,
+        walkFrame: 0,
+        walkNumFrames: 6,
+        walkDelay: 50,
+        walkTimer: 0,
+        image: new Image(),
+        imageReady: false,
+        update: function(elapsed){
+            if(knight.x > this.x){
+                //console.log("Knight is on the right");
+                this.x += this.speed * (elapsed/1000);
+            }else{//knight.x < this.x
+                //console.log("Knight is on the left");
+                this.x -= this.speed * (elapsed/1000);
+            }
+        },
+        draw: function(context){
+            context.drawImage(this.image, 0, 0, this.width, this.height,
+                this.x, this.y, this.width, this.height);
+        }
+    };
+    enemy.image.onload = function(){
+        enemy.imageReady = true;
+    }
+    enemy.image.src = "images/combine_images.png";
+    return enemy;
+} 
 
 var handleInput = function () {
 	// Stop moving the playa
@@ -144,10 +183,10 @@ var update = function (elapsed) {
 		}
 	}
 	else if (knight.direction===1){ 
-			if (knight.x<(canvas.width - knight.width)){ // edge detection
-			var move = (knight.speed * (elapsed/1000));
-			knight.x += Math.round(move * knight.direction);
-			}
+        if (knight.x<(canvas.width - knight.width)){ // edge detection
+            var move = (knight.speed * (elapsed/1000));
+            knight.x += Math.round(move * knight.direction);
+        }
 	}
 
 	if (knight.y<((canvas.height-100)-knight.height)){
@@ -170,15 +209,28 @@ var update = function (elapsed) {
 			velocityY = 0;
 			gravity = 0;}
 	}
+    
+    //Add enemy
+    if(enemies.length < 1){
+        var e = createEnemy();
+        e.x = Math.random() * canvas.width;
+        e.y = canvas.height - 100 - e.height;
+        enemies.push(e);
+    }
+    
+    for(var i = 0; i < enemies.length; i++){
+        enemies[i].update(elapsed);
+    }
 
 };
 
 
 var render = function () {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 	ctx.fillStyle = "grey";
-	ctx.fillRect(0,0,canvas.width,canvas.height);
+	ctx.fillRect(0,0,canvas.width,canvas.height-100);
 	ctx.fillStyle = "black";
-	ctx.fillRect(0,(canvas.height-100),canvas.width,(canvas.height - 200));
+	ctx.fillRect(0,(canvas.height-100),canvas.width,100);
 
 	
 	if (knightImageReady) {
@@ -209,6 +261,10 @@ var render = function () {
 		ctx.fillStyle = "green";
 		ctx.fillRect(knight.x, knight.y, knight.width, knight.height);
 	}
+    
+    for(var i = 0; i < enemies.length; i++){
+        enemies[i].draw(ctx);
+    }
 }
 
 // Main game loop
