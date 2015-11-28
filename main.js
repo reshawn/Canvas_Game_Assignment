@@ -146,8 +146,8 @@ var update = function (elapsed) {
 
 // 	WALKING ANIMATION **************************************************************************
 	// Update hero animation
-	if ((still == false)||(walking == true)){ 
-		//walking==true so animation continues to completion of current cycle
+	if ((still === false)||(walking === true)){ 
+		//walking===true so animation continues to completion of current cycle
 		//so that frame isn't frozen midcycle by still condition
 		knight.walkTimer += elapsed;
 		walking = true;
@@ -167,8 +167,8 @@ var update = function (elapsed) {
 
 // 	ATTACKING ANIMATION **************************************************************************
 	// Update hero animation
-	if (knight.isAttacking == true){ 
-		//walking==true so animation continues to completion of current cycle
+	if (knight.isAttacking === true){ 
+		//walking===true so animation continues to completion of current cycle
 		//so that frame isn't frozen midcycle by still condition
 		knight.attackTimer += elapsed;
 		if (knight.attackTimer >= knight.animDelay) {
@@ -196,19 +196,19 @@ var update = function (elapsed) {
 	}
 
 // WALKING FRAME SET SELECTION BY DIRECTION ****************************************************
-	if (knight.facing == "right") {
+	if (knight.facing === "right") {
 		knight.walkSet = 0;
 	}
-	else if (knight.facing == "left"){
+	else if (knight.facing === "left"){
 		knight.walkSet = 1;
 	}
 	
 
 	// ATTACKIING FRAME SET SELECTION BY DIRECTION ****************************************************
-	if (knight.facing == "right") {
+	if (knight.facing === "right") {
 		knight.attackSet = 1;
 	}
-	else if (knight.facing == "left"){
+	else if (knight.facing === "left"){
 		knight.attackSet = 0;
 	}
 	
@@ -272,72 +272,63 @@ var render = function () {
 
 	
 	if (knightImageReady) {
-		console.log(midAir);
+		//console.log(midAir);
+        var spriteX, effectiveX = knight.x, effectiveWidth = knight.width;
 		if (midAir === true ){
-			knight.width = 64;
-			var spriteX = ( 
-			(2 * (knight.width * knight.walkNumFrames)) + // frame for sprite if knight.jumping
-			(knight.jumpSet * knight.width)
-		);
+			spriteX = ( 
+			(2 * (effectiveWidth * knight.walkNumFrames)) + // frame for sprite if knight.jumping
+			(knight.jumpSet * effectiveWidth)
+            );
 		}
 		else if (knight.isAttacking === true){  // "else if" : only if the char is not in the air can he slash; less problems this way...
 			// images are wider for attacking frames and the knight.width values must be adjusted accordingly
 			if (knight.attackFrame <= 1){
-				knight.width = 90; // set width to 90 pixels for the first two frames of attacking; sword behind char at angle
-				var spriteX = (
-				(2 * (64 * knight.walkNumFrames)) + (2 * 64) + //move past frames for jumping and walking
+				effectiveWidth = 90; // set width to 90 pixels for the first two frames of attacking; sword behind char at angle
+				spriteX = (
+				(2 * (knight.width * knight.walkNumFrames)) + (2 * knight.width) + //move past frames for jumping and walking
 				(knight.attackSet * (531)) + //1 if second set of frames is needed 0 if first is needed
-				(knight.attackFrame * knight.width)
+				(knight.attackFrame * effectiveWidth)
 				);
 			}
 			if (knight.attackFrame >1) {
-				knight.width = 117; // set width to 117 pixels for other frames of attacking; sword in front for contact
+				effectiveWidth = 117; // set width to 117 pixels for other frames of attacking; sword in front for contact
 				// this calculation moves to the frames for the 117 px section of attack by first adding the 
 				// the walking frames and jumping frames then catering for the possible different attack sets
 				// then adding 180 to cater for the first two 90px frames of attacking and lastly
 				// adjusting the attackFrame count by subtracting 2 then multiplying by the current knight.width
 
-				var spriteX = (
-				(2 * (64 * knight.walkNumFrames)) + (2 * 64) + //move past frames for jumping and walking
+				spriteX = (
+				(2 * (knight.width * knight.walkNumFrames)) + (2 * knight.width) + //move past frames for jumping and walking
 				(knight.attackSet * (531)) + 180 + //1 if second set of frames is needed 0 if first is needed
-				((knight.attackFrame -2) * knight.width)
-		);
+				((knight.attackFrame -2) * effectiveWidth)
+                );
 
 			}
 		}
 		else {
-			knight.width = 64; //set width back to 64 pixels for all other frames
-			var spriteX = (
+			spriteX = (
 			(knight.walkSet * (knight.width * knight.walkNumFrames)) + // frame for sprite if walking/still
 			(knight.walkFrame * knight.width) // in the case of still, the animation for walking would be complete and therefore reset
-		); //to the first frame, i.e the "still frame"
+            ); //to the first frame, i.e the "still frame"
 		}
 
 
-		// Render image to canvas
-		if ((knight.attackSet==0)&&(knight.attackFrame>1)){ // render with an adjusted x coordinate to cater for the
-			//the sword being in front of the character in certain frames while facing left
-			ctx.drawImage(
-			knightImage,
-			spriteX, 0, knight.width, knight.height,
-			knight.x-53, knight.y, knight.width, knight.height
-		);
+		// Change the position to draw from so as to account for the slash sprite being wider than the regular sprite
+		if ((knight.attackSet===0)&&(knight.attackFrame>1)){ 
+            // adjust x coordinate to cater for the sword being in front of the character in certain frames while facing left
+			effectiveX -= 53;
 		}
-		else if ((knight.attackSet==1)&&(knight.attackFrame<=1)&&(knight.isAttacking==true)){ // render with an adjusted
-			// x coordinate to cater for the sword being behind the character in certain frames while facing right
-			ctx.drawImage(
-			knightImage,
-			spriteX, 0, knight.width, knight.height,
-			knight.x-26, knight.y, knight.width, knight.height
-		);
-		} 
-		else {
-		ctx.drawImage(
-			knightImage,
-			spriteX, 0, knight.width, knight.height,
-			knight.x, knight.y, knight.width, knight.height
-		);
+		else if ((knight.attackSet===1)&&(knight.attackFrame<=1)&&(knight.isAttacking==true)){ 
+            // adjust x coordinate to cater for the sword being behind the character in certain frames while facing right
+			effectiveX -= 26;
 		}
+        
+        // Render image to canvas
+        ctx.drawImage(
+            knightImage,
+            spriteX, 0, effectiveWidth, knight.height,
+            effectiveX, knight.y, effectiveWidth, knight.height
+        );
 		
 	 } else {
 		// Image not ready. Draw a green box
