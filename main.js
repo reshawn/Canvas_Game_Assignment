@@ -58,6 +58,7 @@ var knight = {
 knight.x = (canvas.width / 2 - knight.width / 2);
 knight.y = (canvas.height - 100) - (knight.height);
 
+//knight image sprite sheet
 var knightImageReady = false;
 var knightImage = new Image();
 knightImage.onload = function () {
@@ -65,6 +66,13 @@ knightImage.onload = function () {
 };
 
 knightImage.src = "images/combine_images.png";
+
+var timerDigits = {
+	ones: 0,
+	tens: 0,
+	hundreds: 0
+};
+
 
 var enemies = [];
 
@@ -103,6 +111,8 @@ var createEnemy = function(){
     }
     enemy.image.src = "images/combine_images.png";
     return enemy;
+
+    
 } 
 
 var handleInput = function () {
@@ -213,7 +223,7 @@ var update = function (elapsed) {
 	}
 	
 
-// MOVEMENT OF CHARACTER ***********************************************************************
+// MOVEMENT FRAME OF CHARACTER ***********************************************************************
 	if(knight.direction===-1){ 
 		if (knight.x>0){  //edge detection
 			var move = (knight.speed * (elapsed/1000));
@@ -260,6 +270,36 @@ var update = function (elapsed) {
         enemies[i].update(elapsed);
     }
 
+
+    // TIMER FRAME UPDATE***********************************************************
+
+        var timerSeconds = (Math.floor(timer/1000));
+        var timerNumDigits = Math.ceil(Math.log(timerSeconds + 1) / Math.LN10); //to get the "length" of the timerSeconds variable
+
+        // each digit value is stored in a separate variable of the timer object
+        // in different cases of values of timerSeconds such as 1, 20, 125
+        if (timerNumDigits === 1){
+
+        	timerDigits.ones = timerSeconds;
+        	timerDigits.tens = 0;
+        	timerDigits.hundreds = 0;
+        }
+        else if (timerNumDigits === 2){
+        	timerDigits.ones = timerSeconds%10;
+        	timerDigits.tens = Math.floor(timerSeconds/10);
+        	timerDigits.hundreds = 0;
+        }
+        else if (timerNumDigits === 3){
+        	var conversionStep = timerSeconds%100;
+        	timerDigits.ones = conversionStep%10;
+        	timerDigits.tens = Math.floor(conversionStep/10);
+        	timerDigits.hundreds = Math.floor(timerSeconds/100);
+        }
+        else {
+        	timerDigits.ones = 9;
+        	timerDigits.tens = 9;
+        	timerDigits.hundreds = 9;
+        }
 };
 
 
@@ -271,6 +311,8 @@ var render = function () {
 	ctx.fillRect(0,(canvas.height-100),canvas.width,100);
 
 	
+	// KNIGHT IMAGE SPRITE X CALCULATIONS*************************************************************************************
+
 	if (knightImageReady) {
 		//console.log(midAir);
         var spriteX, effectiveX = knight.x, effectiveWidth = knight.width;
@@ -311,6 +353,7 @@ var render = function () {
 			(knight.walkFrame * knight.width) // in the case of still, the animation for walking would be complete and therefore reset
             ); //to the first frame, i.e the "still frame"
 		}
+	// END OF KNIGHT IMAGE SPRITE X *********************************************************************************************
 
 
 		// Change the position to draw from so as to account for the slash sprite being wider than the regular sprite
@@ -322,13 +365,24 @@ var render = function () {
             // adjust x coordinate to cater for the sword being behind the character in certain frames while facing right
 			effectiveX -= 26;
 		}
-        
+       
+
+
         // Render image to canvas
         ctx.drawImage(
             knightImage,
             spriteX, 0, effectiveWidth, knight.height,
             effectiveX, knight.y, effectiveWidth, knight.height
         );
+
+        // Timer image rendering
+        	ctx.font = "30px Impact";
+
+        	ctx.fillText(timerDigits.hundreds.toString(), (((canvas.width/2) - 30)), 40);
+        	ctx.fillText(timerDigits.tens.toString(), (((canvas.width/2) - 30) + 20), 40);
+        	ctx.fillText(timerDigits.ones.toString(), (((canvas.width/2) - 30) + 40), 40);
+
+        
 		
 	 } else {
 		// Image not ready. Draw a green box
@@ -365,9 +419,17 @@ var main = function () {
 var last = Date.now();
 setInterval(main, 1000/60);
 
+//COUNT UP TIMER
+var timer = 0;
 
 
+var lastSec = Date.now();
+var myVar = setInterval(myTimer ,1000);
 
-// Notes: flashes back a bit when slashing due to the difference in frames.
-// considering the time constraint and other necessary work, ignoring this is a viable solution
-// ... :l
+ function myTimer() {
+    var now = Date.now();
+    var delta = now - lastSec;
+    lastSec = now;
+    timer += delta;
+console.log(Math.floor(timer/1000));
+}timer
