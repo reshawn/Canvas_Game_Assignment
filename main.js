@@ -51,7 +51,8 @@ var knight = {
 	attackTimer: 0,
 	attackFrame: 0,
 	attackNumFrames: 5,
-	attackSet: 0
+	attackSet: 0,
+    health: 2
 };
 
 //position knight
@@ -75,46 +76,150 @@ var timerDigits = {
 
 
 var enemies = [];
-
 var createEnemy = function(){
     var enemy = {
         x: 0,
         y: 0,
-        width: 64,
-        height: 64,
-        speed: 250,
+        width: 35,
+        height: 42,
+        speed: 125,
         direction: 0,
         walkSet: 0,
-        jumpSet: 0,
         walkFrame: 0,
-        walkNumFrames: 6,
-        walkDelay: 50,
+        walkNumFrames: 4,
         walkTimer: 0,
+        animDelay: 50,
+        attackFrame: 0,
+        attackNumFrames: 2,
+        attackTimer: 0,
         image: new Image(),
         imageReady: false,
-        update: function(elapsed){
-            if(knight.x > this.x){
-                //console.log("Knight is on the right");
-                this.x += this.speed * (elapsed/1000);
-            }else{//knight.x < this.x
-                //console.log("Knight is on the left");
-                this.x -= this.speed * (elapsed/1000);
+        alive: true,
+        health: 1,
+        lastAttack: 500,
+        inAttackingRange: false,
+        attackSet: 0,
+        update: function(elapsed){            
+            var distanceBetween = this.x - knight.x;
+            this.lastAttack += elapsed;
+            //If it > -35 that means that this enemy is being drawn next to the knight on the left
+            //If it < 64 that means that this enemy is being drawn next to the kniht on the right
+            if(distanceBetween < -35 || distanceBetween > 64){//If not in attacking range then move closer
+                this.inAttackingRange = false;
+                this.walkTimer += elapsed;
+                if (this.walkTimer >= this.animDelay) {
+                    // Enough time has passed to update the animation frame
+                    this.walkTimer = 0; // Reset the animation timer
+                    this.walkFrame++;
+
+                    if (this.walkFrame >= this.walkNumFrames) {
+                        // We've reached the end of the animation frames; rewind
+                        this.walkFrame = 0;
+                    }
+                }
+               
+                
+                var distance = Math.round(this.speed * (elapsed/1000));
+                if(knight.x > this.x){ //Knight is on the right
+                    this.x += distance;
+                    this.walkSet = 0
+                }else if(knight.x+knight.width < this.x){// Knight is on the left
+                    this.x -= distance;
+                    this.walkSet = 1;
+                }
+            }else{
+                this.walkFrame = 0;//If close enough set the frame to the beginning
+                this.inAttackingRange = true;
+                this.attackSet = distanceBetween < 0 ? 0 : 1; 
+                if(this.lastAttack >= 500 && knight.onGround){// in attacking range
+                    this.attackTimer += elapsed;
+                    if(this.attackTimer >= this.animDelay){
+                        this.attackTimer = 0;
+                        this.attackFrame++;
+                        
+                        if(this.attackFrame >= this.attackNumFrames){//Reset to the beginning frame
+                            this.attackFrame = 0;
+                            knight.health -= 1;
+                            this.lastAttack = 0;
+                        }
+                        
+                    }                    
+                }
             }
         },
         draw: function(context){
-            context.drawImage(this.image, 0, 0, this.width, this.height,
-                this.x, this.y, this.width, this.height);
-        }
+        	if(this.imageReady){
+                var spriteX;
+                if(!this.inAttackingRange || !knight.onGround)
+                    spriteX =  (this.walkSet * (this.width * this.walkNumFrames)) + (this.walkFrame * this.width); 
+                else
+                    spriteX = (2 * this.walkNumFrames * this.width) + (this.attackSet * 70) + (this.attackFrame * this.width);
+                
+        		context.drawImage(this.image, spriteX, 0, this.width, this.height, this.x, this.y, this.width, this.height);
+        	}else{
+        		context.fillStyle = "green";
+        		context.fillRect(this.x, this.y, this.width, this.height);
+        	}
+        }        
     };
     enemy.image.onload = function(){
         enemy.imageReady = true;
     }
-    enemy.image.src = "images/combine_images.png";
+    enemy.image.src = "images/enemy.png";
     return enemy;
+}
 
-    
-} 
+var boss = {
+	x: 0,
+	y: 0,
+	width: 128,
+	height: 128,
+	speed: 200,
+	direction: 0,
+	walkSet: 0,
+	jumpSet: 0,
+	walkFrame: 0,
+	walkNumFrames: 6,
+	walkDelay: 50,
+	walkTimer: 0,
+    image: new Image(),
+    imageReady: false,
+	available: false,
+	health: 10,
+	lastAttack: 500,
+	update: function (elapsed) {
+		if(knight.x > this.x){
+            //console.log("Knight is on the right");
+            this.x += Math.round(this.speed * (elapsed/1000));
+            console.log(knight.x, this.x)
+        }else if(knight.x < this.x){//knight.x < this.x
+            //console.log("Knight is on the left");
+            this.x -= Math.round(this.speed * (elapsed/1000));
+        }
+        var distance = Math.abs(this.x - knight.x);
 
+        this.lastAttack += elapsed;
+        if(distance < 32 && this.lastAttack >= 500 && knight.onGround){
+        	console.log("boss can attack");
+        	knight.health -= 1;
+        	this.lastAttack = 0;
+        }
+	},
+	draw: function(context){
+		if(this.imageReady){
+    		context.drawImage(this.image, 0, 0, this.width, this.height,
+            this.x, this.y, this.width, this.height);
+    	}else{
+    		context.fillStyle = "black";
+    		context.fillRect(this.x, this.y, this.width, this.height);
+    	}
+	} 
+};
+boss.y = (canvas.height - 100) - (boss.height);
+boss.image.onload = function(){
+	boss.imageReady = true;
+}
+boss.image.src = "http://ih0.redbubble.net/image.120554593.5192/flat,800x800,075,f.u2.jpg";
 var handleInput = function () {
 	// Stop moving the playa
 	knight.direction = 0;
@@ -123,40 +228,37 @@ var handleInput = function () {
 		knight.direction = -1;
 		still=false;
 		knight.facing = "left";
-		
-		// }
 	}
-
 
 	if (39 in keysDown){
 		knight.direction = 1;
 		still=false;
 		knight.facing = "right";
-		// }
 	}
 
-	if (38 in keysDown && knight.onGround === true || 32 in keysDown && knight.onGround === true){ //up
+	if ((38 in keysDown || 32 in keysDown) && knight.onGround){ //up
 		knight.jumping = true;
 		velocityY = -12;
 		gravity = 0.5;
 
 	}
 
-	if ((90 in keysDown)&&(knight.onGround === true)){
+	if (90 in keysDown && knight.onGround){
 		knight.isAttacking = true;
 		still = false;
 	}
-
-
-
 };
 
 
 var update = function (elapsed) {
+    
+    if(knight.health <= 0){
+		clearInterval(interval);
+	}
 
 // 	WALKING ANIMATION **************************************************************************
 	// Update hero animation
-	if ((still === false)||(walking === true)){ 
+	if (!still || walking){ 
 		//walking===true so animation continues to completion of current cycle
 		//so that frame isn't frozen midcycle by still condition
 		knight.walkTimer += elapsed;
@@ -177,7 +279,7 @@ var update = function (elapsed) {
 
 // 	ATTACKING ANIMATION **************************************************************************
 	// Update hero animation
-	if (knight.isAttacking === true){ 
+	if (knight.isAttacking){ 
 		//walking===true so animation continues to completion of current cycle
 		//so that frame isn't frozen midcycle by still condition
 		knight.attackTimer += elapsed;
@@ -197,8 +299,7 @@ var update = function (elapsed) {
 
 
 // JUMPING FRAME *******************************************************************************
-	if ((knight.jumping === true)) {
-		
+	if (knight.jumping) {
 		if (knight.facing === "right") // right jump
 			knight.jumpSet = 0;
 		if (knight.facing === "left") // left jump
@@ -248,28 +349,34 @@ var update = function (elapsed) {
 	}
 	
 
-	if (knight.jumping === true || knight.onGround === false){	
+	if (knight.jumping || !knight.onGround){	
 		velocityY += gravity;
 		knight.y += velocityY;
 		if (knight.y > (canvas.height-100 - knight.height)){
 			console.log("u mad bro");
 			knight.y = canvas.height-100 - knight.height;
 			velocityY = 0;
-			gravity = 0;}
+			gravity = 0;
+        }
 	}
     
     //Add enemy
     if(enemies.length < 1){
         var e = createEnemy();
-        e.x = Math.random() * canvas.width;
+        e.x = Math.round(Math.random() * canvas.width);
         e.y = canvas.height - 100 - e.height;
         enemies.push(e);
     }
     
+    boss.available = enemies.length > 5;
     for(var i = 0; i < enemies.length; i++){
-        enemies[i].update(elapsed);
+    	boss.available = boss.available && !enemies[i].alive;
+        if(enemies[i].alive) enemies[i].update(elapsed);
     }
-
+    
+    if(boss.available){
+    	boss.update(elapsed);
+    }
 
     // TIMER FRAME UPDATE***********************************************************
 
@@ -279,7 +386,6 @@ var update = function (elapsed) {
         // each digit value is stored in a separate variable of the timer object
         // in different cases of values of timerSeconds such as 1, 20, 125
         if (timerNumDigits <= 1){
-
         	timerDigits.ones = timerSeconds;
         	timerDigits.tens = 0;
         	timerDigits.hundreds = 0;
@@ -316,13 +422,13 @@ var render = function () {
 	if (knightImageReady) {
 		//console.log(midAir);
         var spriteX, effectiveX = knight.x, effectiveWidth = knight.width;
-		if (midAir === true ){
+		if (midAir){
 			spriteX = ( 
 			(2 * (effectiveWidth * knight.walkNumFrames)) + // frame for sprite if knight.jumping
 			(knight.jumpSet * effectiveWidth)
             );
 		}
-		else if (knight.isAttacking === true){  // "else if" : only if the char is not in the air can he slash; less problems this way...
+		else if (knight.isAttacking){  // "else if" : only if the char is not in the air can he slash; less problems this way...
 			// images are wider for attacking frames and the knight.width values must be adjusted accordingly
 			if (knight.attackFrame <= 1){
 				effectiveWidth = 90; // set width to 90 pixels for the first two frames of attacking; sword behind char at angle
@@ -391,7 +497,11 @@ var render = function () {
 	}
     
     for(var i = 0; i < enemies.length; i++){
-        enemies[i].draw(ctx);
+        if(enemies[i].alive) enemies[i].draw(ctx);
+    }
+    
+    if(boss.available){
+    	boss.draw(ctx);
     }
 }
 
@@ -417,7 +527,7 @@ var main = function () {
 
 // Start the main game loop!
 var last = Date.now();
-setInterval(main, 1000/60);
+var interval = setInterval(main, 1000/60);
 
 //COUNT UP TIMER
 var timer = 0;
