@@ -278,7 +278,7 @@ var update = function (elapsed) {
 
         // each digit value is stored in a separate variable of the timer object
         // in different cases of values of timerSeconds such as 1, 20, 125
-        if (timerNumDigits === 1){
+        if (timerNumDigits <= 1){
 
         	timerDigits.ones = timerSeconds;
         	timerDigits.tens = 0;
