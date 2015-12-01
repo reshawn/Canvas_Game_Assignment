@@ -119,7 +119,7 @@ var knight = {
     // KNIGHT HURT FRAME ****************************************************************************
       if (knight.isHurt){
       	this.hurtTimer += elapsed;
-
+      	this.direction = 0;
             if (this.hurtTimer >= this.hurtDelay) {
                 //hurt frame has been showed enough
                 this.hurtTimer = 0; // Reset the animation timer
