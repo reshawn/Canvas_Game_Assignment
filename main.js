@@ -28,6 +28,22 @@ addEventListener("keyup", function (e){
 var gravity = 0.5;
 var velocityY = 0;
 
+var death = { //seperate object made for death for reusability of the animation
+	timer: 0,
+	numFrames: 4,
+	deathFrame: 0,
+	image: new Image(),
+	imageReady: false,
+};
+
+death.image.onload = function () {
+	knight.imageReady = true;
+};
+death.image.src = "images/death.png";
+
+heart= new Image();
+heart.src = "images/heart.png";
+
 var knight = {
 	x: 0,
 	y: 0,
@@ -52,7 +68,11 @@ var knight = {
 	attackFrame: 0,
 	attackNumFrames: 5,
 	attackSet: 0,
-    health: 2,
+	isAlive: true,
+    health: 5,
+    isHurt: false,
+    hurtTimer: 0,
+    hurtDelay: 100,
     image: new Image(), //knight image sprite sheet
     imageReady: false,
     update: function(elapsed){
@@ -96,8 +116,31 @@ var knight = {
             }
         }
 
+    // KNIGHT HURT FRAME ****************************************************************************
+      if (knight.isHurt){
+      	this.hurtTimer += elapsed;
 
+            if (this.hurtTimer >= this.hurtDelay) {
+                //hurt frame has been showed enough
+                this.hurtTimer = 0; // Reset the animation timer
+                knight.isHurt = false;
+            }
+      }
+    //KNIGHT DEATH ANIMATION ***********************************************************************
+      if (this.health === 0){
+      	death.timer += elapsed;
+            if (death.timer >= this.animDelay) {
+            	console.log(death.deathFrame);
+                // Enough time has passed to update the animation frame
+                death.timer = 0; // Reset the animation timer
+                ++death.deathFrame;
 
+                if (death.deathFrame >= death.numFrames) {
+                    // We've reached the end of the animation frames; rewind
+                    this.isAlive = false;
+                }
+            }
+      }
     // JUMPING FRAME *******************************************************************************
         if (this.jumping) {
             if (this.facing === "right") // right jump
@@ -164,7 +207,12 @@ var knight = {
         if (this.imageReady) {
             //console.log(this.midAir);
             var spriteX, effectiveX = this.x, effectiveWidth = this.width;
-            if (this.midAir){
+            if (this.isHurt){
+            	if (this.facing === "right")
+            	spriteX = 2086 - (64*2);
+            	else spriteX = 2086 - 64;
+            }
+            else if (this.midAir){
                 spriteX = ( 
                 (2 * (effectiveWidth * this.walkNumFrames)) + // frame for sprite if knight.jumping
                 (this.jumpSet * effectiveWidth)
@@ -216,11 +264,22 @@ var knight = {
 
 
             // Render image to canvas
+            if (this.health > 0) {
             ctx.drawImage(
                 this.image,
                 spriteX, 0, effectiveWidth, this.height,
                 effectiveX, this.y, effectiveWidth, this.height
             );
+        	}
+        	if (this.health === 0) {
+        		spriteX = (64*death.deathFrame);
+
+        		ctx.drawImage(
+                death.image,
+                spriteX, 0, effectiveWidth, this.height,
+                effectiveX, this.y, effectiveWidth, this.height
+            );
+        	}
 
          } else {
             // Image not ready. Draw a green box
@@ -270,7 +329,7 @@ var createEnemy = function(){
         lastAttack: 500,
         inAttackingRange: false,
         attackSet: 0,
-        update: function(elapsed){            
+        update: function(elapsed){  
             var distanceBetween = this.x - knight.x;
             this.lastAttack += elapsed;
             //If it > -35 that means that this enemy is being drawn next to the knight on the left
@@ -302,7 +361,7 @@ var createEnemy = function(){
                 this.walkFrame = 0;//If close enough set the frame to the beginning
                 this.inAttackingRange = true;
                 this.attackSet = distanceBetween < 0 ? 0 : 1; 
-                if(this.lastAttack >= 500 && knight.onGround){// in attacking range
+                if(this.lastAttack >= 500 && knight.onGround){// in attacking range and time since last attack is 500ms
                     this.attackTimer += elapsed;
                     if(this.attackTimer >= this.animDelay){
                         this.attackTimer = 0;
@@ -311,9 +370,10 @@ var createEnemy = function(){
                         if(this.attackFrame >= this.attackNumFrames){//Reset to the beginning frame
                             this.attackFrame = 0;
                             knight.health -= 1;
+                            knight.isHurt = true;
                             this.lastAttack = 0;
                         }
-                        
+
                     }                    
                 }
             }
@@ -390,7 +450,7 @@ boss.y = (canvas.height - 100) - (boss.height);
 boss.image.onload = function(){
 	boss.imageReady = true;
 }
-boss.image.src = "http://ih0.redbubble.net/image.120554593.5192/flat,800x800,075,f.u2.jpg";
+boss.image.src = "http://ih0.redbubble.net/image.120554593.5192/flat,800x800,075,f.u2.jpg"; //charmander is boss``
 var handleInput = function () {
 	// Stop moving the playa
 	knight.direction = 0;
@@ -423,8 +483,8 @@ var handleInput = function () {
 
 var update = function (elapsed) {
     
-    if(knight.health <= 0){
-		clearInterval(interval);
+    if(!knight.isAlive){
+		clearInterval(interval); //knight dead so stop game; gameover sequence would come here
 	}
     
     knight.update(elapsed);
@@ -437,10 +497,10 @@ var update = function (elapsed) {
         enemies.push(e);
     }
     
-    boss.available = enemies.length > 5;
+    boss.available = enemies.length > 5; //boss spawns if more than five enemies
     for(var i = 0; i < enemies.length; i++){
-    	boss.available = boss.available && !enemies[i].alive;
-        if(enemies[i].alive) enemies[i].update(elapsed);
+    	boss.available = boss.available && !enemies[i].alive; //boss spawns if the more than five have been killed
+        if(enemies[i].alive) enemies[i].update(elapsed); // if enemy alive then update enemy
     }
     
     if(boss.available){
@@ -490,6 +550,10 @@ var render = function () {
     // Timer image rendering
     ctx.font = "30px Impact";
 
+    for (var h = 0; h < knight.health; h++){
+    	ctx.drawImage(heart, 0, 0, 22, 18, 20+(20*h), 20, 22, 18);
+    }
+
     ctx.fillText(timerDigits.hundreds.toString(), (((canvas.width/2) - 30)), 40);
     ctx.fillText(timerDigits.tens.toString(), (((canvas.width/2) - 30) + 20), 40);
     ctx.fillText(timerDigits.ones.toString(), (((canvas.width/2) - 30) + 40), 40);
@@ -537,5 +601,4 @@ var myVar = setInterval(myTimer ,1000);
      var delta = now - lastSec;
      lastSec = now;
      timer += delta;
-     console.log(Math.floor(timer/1000));
 }
