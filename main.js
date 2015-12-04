@@ -25,8 +25,22 @@ addEventListener("keyup", function (e){
 }, false);
 
 
+
+//fixed jumping physics variables
 var gravity = 0.5;
 var velocityY = 0;
+//initialize main menu variables
+var isGameRunning = false;
+var whichHover = "start";
+var isPause = false;
+//pause screen
+var pause = new Image();
+pause.src = "images/pause.png";
+//instructions screen
+var isOnInstr = false;
+//game over
+var isGameover = false;
+
 
 var death = { //seperate object made for death for reusability of the animation
 	timer: 0,
@@ -451,6 +465,8 @@ boss.image.onload = function(){
 	boss.imageReady = true;
 }
 boss.image.src = "http://ih0.redbubble.net/image.120554593.5192/flat,800x800,075,f.u2.jpg"; //charmander is boss``
+
+
 var handleInput = function () {
 	// Stop moving the playa
 	knight.direction = 0;
@@ -467,7 +483,7 @@ var handleInput = function () {
 		knight.facing = "right";
 	}
 
-	if ((38 in keysDown || 32 in keysDown) && knight.onGround){ //up
+	if (32 in keysDown && knight.onGround){ //space
 		knight.jumping = true;
 		velocityY = -12;
 		gravity = 0.5;
@@ -478,13 +494,26 @@ var handleInput = function () {
 		knight.isAttacking = true;
 		knight.still = false;
 	}
+
+	if (80 in keysDown){ // P for pause
+		isPause = true;	
+	}
+	if (85 in keysDown){ // U for unpause; different keys used because 
+		// isPause would switch from paused to unpaused 60 times per second when p is pressed so there's no control
+		// different keys allow for control
+		isPause = false;
+	}
+
+	
 };
 
 
 var update = function (elapsed) {
     
     if(!knight.isAlive){
-		clearInterval(interval); //knight dead so stop game; gameover sequence would come here
+		isGameRunning = false; //knight dead so stop game
+		isGameover = true;
+		
 	}
     
     knight.update(elapsed);
@@ -567,6 +596,126 @@ var render = function () {
     }
 }
 
+var mainMenu = function () {
+	if (isGameover) // if game is over then run game over instead of main menu
+		gameover();
+
+	else {
+
+		var mainImages = {
+			startScreen: new Image(),
+			unselectedStart: new Image(),
+			selectedStart: new Image(),
+			unselectedHowTo: new Image(),
+			selectedHowTo: new Image(),
+			pause: new Image(),
+
+		};
+
+		mainImages.startScreen.src = "images/mainMenu.png";
+		mainImages.unselectedStart.src = "images/unselectedStart.png";
+		mainImages.selectedStart.src = "images/selectedStart.png";
+		mainImages.unselectedHowTo.src = "images/unselectedHowTo.png";
+		mainImages.selectedHowTo.src = "images/selectedHowTo.png";
+		// mainImages.pause.src = "images/pause.png";
+
+		ctx.drawImage(mainImages.startScreen, 0, 0, 1000, 700);
+
+		var hoverStart = function() { // white border around start button or "hover cursor" over start button
+		ctx.drawImage(mainImages.selectedStart, 100, 350, 200, 70);
+		ctx.drawImage(mainImages.unselectedHowTo, 100, 450, 200, 70);
+		}
+
+		var hoverHowTo = function() { // white border around how to button or "hover cursor" over how to button
+			ctx.drawImage(mainImages.unselectedStart, 100, 350, 200, 70);
+			ctx.drawImage(mainImages.selectedHowTo, 100, 450, 200, 70);
+		}
+
+			if (whichHover === "start")
+				hoverStart(); // draw selected button for start to simulate start
+			else if (whichHover === "howTo")
+				hoverHowTo();
+
+			// only start game is enter is pressed while hovering over start
+			if (13 in keysDown && whichHover === "start"){ //select start
+				resetGame(); // reset in case game was being played before
+				isGameRunning = true;
+			}
+			
+
+			//for the instructions screen, due to the fact that the Enter key is used for entrance and exit, the 13 value remains in the
+			// keysDown array not allowing the user to control entrance and exit properly
+			// therefore the three instr variables and the two conditional setTimeouts were introduced
+			// this method attempts to allow for the user to enter and exit by pressing the enter key after a 100ms period on each
+			//but reentry still has issues even though it works in some circumstances
+
+			if (13 in keysDown && whichHover === "howTo" || isOnInstr){
+				instructions();
+			}
+			
+			// if hovering over start and down is pressed hover over how to
+			if (40 in keysDown && whichHover === "start")
+				whichHover = "howTo"; 
+			// if hovering over howTo and up is pressed hover over start
+			if (38 in keysDown && whichHover === "howTo")
+				whichHover = "start";
+	}
+}
+
+
+
+
+
+var instructions = function() { 
+
+	var instruc = new Image();
+	instruc.src = "images/instructions.png";
+
+	ctx.drawImage(instruc, 0, 0, 1000, 700);
+
+	isOnInstr = true;
+
+	if(27 in keysDown) //Esc to go back to main menu
+		isOnInstr = false;
+
+}
+
+var pauseScreen = function(){
+	ctx.drawImage(pause, (canvas.width/2)-(290/2), (canvas.height/2)-50, 290, 100);
+}
+
+function gameover(){
+	var gameoverScreen = new Image();
+
+	gameoverScreen.src = "images/gameover_test.png";
+
+	ctx.drawImage(gameoverScreen, 0, 0, 1000, 700);
+
+	if (27 in keysDown) //Esc to go back to main menu
+		isGameover = false; // enter the 'else' in order to bring up main menu
+	if (13 in keysDown){ // enter to try again
+		resetGame(); // reset immediately
+		isGameover = false; 
+		isGameRunning = true; //immeduately go back to game
+	}
+
+}
+
+function resetGame() {
+	// reset knight variables
+	knight.x = (canvas.width / 2 - knight.width / 2);
+	knight.y = (canvas.height - 100) - (knight.height);	
+	knight.facing = "right";
+	knight.health = 5;
+	knight.isAlive = true;
+	// reset timer
+	timer = 0;
+	//reset enemies
+	enemies = [];
+
+
+}
+
 // Main game loop
 var main = function () {
 
@@ -574,20 +723,30 @@ var main = function () {
 	var now = Date.now();
 	var delta = (now - last);
 	last = now;
+	if(!isGameRunning)
+		mainMenu(); //only run main menu if start was not hit; for now ;) 
 
-	// Handle any user input
 	handleInput();
-
 	// Update game objects
-	update(delta);
+	if (isGameRunning === true && !isPause){ //only run game loop if start was hit and the game is unpaused
+		update(delta);
 
-	// Render to the screen
-	render();
+		// Render to the screen
+		render();
+	}
+	else if (isGameRunning && isPause)
+	 pauseScreen();
 };
 
 // Start the main game loop!
 var last = Date.now();
+
+
+		
+	
 var interval = setInterval(main, 1000/60);
+
+
 
 //COUNT UP TIMER
 var timer = 0;
@@ -597,8 +756,12 @@ var lastSec = Date.now();
 var myVar = setInterval(myTimer ,1000);
 
  function myTimer() {
+ 	
      var now = Date.now();
      var delta = now - lastSec;
      lastSec = now;
-     timer += delta;
+     if(!isPause && isGameRunning){ //only update timer if unpaused; so now and lastSec continue changing 
+     //even when paused so delta remains 1sec after unpause and only if the game is actually running (not in menus)
+	     timer += delta;
+ 	 }
 }
