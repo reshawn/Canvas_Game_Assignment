@@ -425,7 +425,7 @@ enemy.image.onload = function(){
     enemy.imageReady = true;
 }
 enemy.image.src = "images/enemy.png";
-var lastEnemySpan = 1000;//Used to ensure the enemy spans every 1000ms/1s
+var lastEnemySpawn = 1000;//Used to ensure the enemy spans every 1000ms/1s
 
 var boss = {
 	x: 0,
@@ -532,14 +532,14 @@ var update = function (elapsed) {
     knight.update(elapsed);
     
     //Add enemy
-    if(enemies.length < 10 && lastEnemySpan >= 1000){
+    if(enemies.length < 10 && lastEnemySpawn >= 1000){
         var e = Object.create(enemy);
         e.x = Math.round(Math.random() * canvas.width);
         e.y = canvas.height - 100 - e.height;
         enemies.push(e);
-        lastEnemySpan = 0;
+        lastEnemySpawn = 0;
     }
-    lastEnemySpan += elapsed;
+    lastEnemySpawn += elapsed;
     
     boss.available = enemies.length > 10; //boss spawns if more than ten enemies have been spawned
     for(var i = 0; i < enemies.length; i++){
@@ -590,10 +590,6 @@ var render = function () {
 	ctx.fillRect(0,(canvas.height-100),canvas.width,100);
 
 	knight.draw(ctx);
-    
-    
-
-    
 
     // Timer image rendering
     ctx.font = "30px Impact";
@@ -635,44 +631,37 @@ var mainMenu = function () {
 
 		ctx.drawImage(mainImages.startScreen, 0, 0, 1000, 700);
 
-		var hoverStart = function() { // white border around start button or "hover cursor" over start button
-		ctx.drawImage(mainImages.selectedStart, 100, 350, 200, 70);
-		ctx.drawImage(mainImages.unselectedHowTo, 100, 450, 200, 70);
-		}
-
-		var hoverHowTo = function() { // white border around how to button or "hover cursor" over how to button
-			ctx.drawImage(mainImages.unselectedStart, 100, 350, 200, 70);
+		if (whichHover === "start"){// white border around start button or "hover cursor" over start button
+            ctx.drawImage(mainImages.selectedStart, 100, 350, 200, 70);
+            ctx.drawImage(mainImages.unselectedHowTo, 100, 450, 200, 70);
+        }else if (whichHover === "howTo"){// white border around how to button or "hover cursor" over how to button
+            ctx.drawImage(mainImages.unselectedStart, 100, 350, 200, 70);
 			ctx.drawImage(mainImages.selectedHowTo, 100, 450, 200, 70);
-		}
+        }
 
-			if (whichHover === "start")
-				hoverStart(); // draw selected button for start to simulate start
-			else if (whichHover === "howTo")
-				hoverHowTo();
+        // only start game is enter is pressed while hovering over start
+        if (13 in keysDown && whichHover === "start"){ //select start
+            resetGame(); // reset in case game was being played before
+            isGameRunning = true;
+        }
 
-			// only start game is enter is pressed while hovering over start
-			if (13 in keysDown && whichHover === "start"){ //select start
-				resetGame(); // reset in case game was being played before
-				isGameRunning = true;
-			}
-			
 
-			//for the instructions screen, due to the fact that the Enter key is used for entrance and exit, the 13 value remains in the
-			// keysDown array not allowing the user to control entrance and exit properly
-			// therefore the three instr variables and the two conditional setTimeouts were introduced
-			// this method attempts to allow for the user to enter and exit by pressing the enter key after a 100ms period on each
-			//but reentry still has issues even though it works in some circumstances
+        //for the instructions screen, due to the fact that the Enter key is used for entrance and exit, the 13 value remains in the
+        // keysDown array not allowing the user to control entrance and exit properly
+        // therefore the three instr variables and the two conditional setTimeouts were introduced
+        // this method attempts to allow for the user to enter and exit by pressing the enter key after a 100ms period on each
+        //but reentry still has issues even though it works in some circumstances
 
-			if (13 in keysDown && whichHover === "howTo" || isOnInstr){
-				instructions();
-			}
-			
-			// if hovering over start and down is pressed hover over how to
-			if (40 in keysDown && whichHover === "start")
-				whichHover = "howTo"; 
-			// if hovering over howTo and up is pressed hover over start
-			if (38 in keysDown && whichHover === "howTo")
-				whichHover = "start";
+        if (13 in keysDown && whichHover === "howTo" || isOnInstr){
+            instructions();
+        }
+
+        // if hovering over start and down is pressed hover over how to
+        if (40 in keysDown && whichHover === "start")
+            whichHover = "howTo"; 
+        // if hovering over howTo and up is pressed hover over start
+        if (38 in keysDown && whichHover === "howTo")
+            whichHover = "start";
 	}
 }
 
@@ -742,7 +731,7 @@ var main = function () {
 
 	handleInput();
 	// Update game objects
-	if (isGameRunning === true && !isPause){ //only run game loop if start was hit and the game is unpaused
+	if (isGameRunning && !isPause){ //only run game loop if start was hit and the game is unpaused
 		update(delta);
 
 		// Render to the screen
