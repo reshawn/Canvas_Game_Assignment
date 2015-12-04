@@ -128,6 +128,16 @@ var knight = {
                     this.isAttacking = false;
                 }
             }
+            
+            //Check if any enemies are in the range of the attack
+            for(var i = 0; i < enemies.length; i++){
+                if(enemies[i].alive){
+                    var distance = enemies[i].x - this.x;
+                    if(-36 < distance && distance < 65){
+                        enemies[i].alive = false;
+                    }
+                }
+            }
         }
 
     // KNIGHT HURT FRAME ****************************************************************************
@@ -218,6 +228,11 @@ var knight = {
         }
     },
     draw: function(context){
+        //Draw Knight Health
+        for (var h = 0; h < knight.health; h++){
+            ctx.drawImage(heart, 0, 0, 22, 18, 20+(20*h), 20, 22, 18);
+        }
+        
         if (this.imageReady) {
             //console.log(this.midAir);
             var spriteX, effectiveX = this.x, effectiveWidth = this.width;
@@ -320,99 +335,97 @@ var timerDigits = {
 
 
 var enemies = [];
-var createEnemy = function(){
-    var enemy = {
-        x: 0,
-        y: 0,
-        width: 35,
-        height: 42,
-        speed: 125,
-        direction: 0,
-        walkSet: 0,
-        walkFrame: 0,
-        walkNumFrames: 4,
-        walkTimer: 0,
-        animDelay: 50,
-        attackFrame: 0,
-        attackNumFrames: 2,
-        attackTimer: 0,
-        image: new Image(),
-        imageReady: false,
-        alive: true,
-        health: 1,
-        lastAttack: 500,
-        inAttackingRange: false,
-        attackSet: 0,
-        update: function(elapsed){  
-            var distanceBetween = this.x - knight.x;
-            this.lastAttack += elapsed;
-            //If it > -35 that means that this enemy is being drawn next to the knight on the left
-            //If it < 64 that means that this enemy is being drawn next to the kniht on the right
-            if(distanceBetween < -35 || distanceBetween > 64){//If not in attacking range then move closer
-                this.inAttackingRange = false;
-                this.walkTimer += elapsed;
-                if (this.walkTimer >= this.animDelay) {
-                    // Enough time has passed to update the animation frame
-                    this.walkTimer = 0; // Reset the animation timer
-                    this.walkFrame++;
+var enemy = {
+    x: 0,
+    y: 0,
+    width: 35,
+    height: 42,
+    speed: 125,
+    direction: 0,
+    walkSet: 0,
+    walkFrame: 0,
+    walkNumFrames: 4,
+    walkTimer: 0,
+    animDelay: 50,
+    attackFrame: 0,
+    attackNumFrames: 2,
+    attackTimer: 0,
+    image: new Image(),
+    imageReady: false,
+    alive: true,
+    health: 1,
+    lastAttack: 500,
+    inAttackingRange: false,
+    attackSet: 0,
+    update: function(elapsed){  
+        var distanceBetween = this.x - knight.x;
+        this.lastAttack += elapsed;
+        //If it > -35 that means that this enemy is being drawn next to the knight on the left
+        //If it < 64 that means that this enemy is being drawn next to the kniht on the right
+        if(distanceBetween < -35 || distanceBetween > 64){//If not in attacking range then move closer
+            this.inAttackingRange = false;
+            this.walkTimer += elapsed;
+            if (this.walkTimer >= this.animDelay) {
+                // Enough time has passed to update the animation frame
+                this.walkTimer = 0; // Reset the animation timer
+                this.walkFrame++;
 
-                    if (this.walkFrame >= this.walkNumFrames) {
-                        // We've reached the end of the animation frames; rewind
-                        this.walkFrame = 0;
-                    }
-                }
-               
-                
-                var distance = Math.round(this.speed * (elapsed/1000));
-                if(knight.x > this.x){ //Knight is on the right
-                    this.x += distance;
-                    this.walkSet = 0
-                }else if(knight.x+knight.width < this.x){// Knight is on the left
-                    this.x -= distance;
-                    this.walkSet = 1;
-                }
-            }else{
-                this.walkFrame = 0;//If close enough set the frame to the beginning
-                this.inAttackingRange = true;
-                this.attackSet = distanceBetween < 0 ? 0 : 1; 
-                if(this.lastAttack >= 500 && knight.onGround){// in attacking range and time since last attack is 500ms
-                    this.attackTimer += elapsed;
-                    if(this.attackTimer >= this.animDelay){
-                        this.attackTimer = 0;
-                        this.attackFrame++;
-                        
-                        if(this.attackFrame >= this.attackNumFrames){//Reset to the beginning frame
-                            this.attackFrame = 0;
-                            knight.health -= 1;
-                            knight.isHurt = true;
-                            this.lastAttack = 0;
-                        }
-
-                    }                    
+                if (this.walkFrame >= this.walkNumFrames) {
+                    // We've reached the end of the animation frames; rewind
+                    this.walkFrame = 0;
                 }
             }
-        },
-        draw: function(context){
-        	if(this.imageReady){
-                var spriteX;
-                if(!this.inAttackingRange || !knight.onGround)
-                    spriteX =  (this.walkSet * (this.width * this.walkNumFrames)) + (this.walkFrame * this.width); 
-                else
-                    spriteX = (2 * this.walkNumFrames * this.width) + (this.attackSet * 70) + (this.attackFrame * this.width);
-                
-        		context.drawImage(this.image, spriteX, 0, this.width, this.height, this.x, this.y, this.width, this.height);
-        	}else{
-        		context.fillStyle = "green";
-        		context.fillRect(this.x, this.y, this.width, this.height);
-        	}
-        }        
-    };
-    enemy.image.onload = function(){
-        enemy.imageReady = true;
-    }
-    enemy.image.src = "images/enemy.png";
-    return enemy;
+
+
+            var distance = Math.round(this.speed * (elapsed/1000));
+            if(knight.x > this.x){ //Knight is on the right
+                this.x += distance;
+                this.walkSet = 0
+            }else if(knight.x+knight.width < this.x){// Knight is on the left
+                this.x -= distance;
+                this.walkSet = 1;
+            }
+        }else{
+            this.walkFrame = 0;//If close enough set the frame to the beginning
+            this.inAttackingRange = true;
+            this.attackSet = distanceBetween < 0 ? 0 : 1; 
+            if(this.lastAttack >= 500 && knight.onGround){// in attacking range and time since last attack is 500ms
+                this.attackTimer += elapsed;
+                if(this.attackTimer >= this.animDelay){
+                    this.attackTimer = 0;
+                    this.attackFrame++;
+
+                    if(this.attackFrame >= this.attackNumFrames){//Reset to the beginning frame
+                        this.attackFrame = 0;
+                        knight.health -= 1;
+                        knight.isHurt = true;
+                        this.lastAttack = 0;
+                    }
+
+                }                    
+            }
+        }
+    },
+    draw: function(context){
+        if(this.imageReady){
+            var spriteX;
+            if(!this.inAttackingRange || !knight.onGround)
+                spriteX =  (this.walkSet * (this.width * this.walkNumFrames)) + (this.walkFrame * this.width); 
+            else
+                spriteX = (2 * this.walkNumFrames * this.width) + (this.attackSet * 70) + (this.attackFrame * this.width);
+
+            context.drawImage(this.image, spriteX, 0, this.width, this.height, this.x, this.y, this.width, this.height);
+        }else{
+            context.fillStyle = "green";
+            context.fillRect(this.x, this.y, this.width, this.height);
+        }
+    }        
+};
+enemy.image.onload = function(){
+    enemy.imageReady = true;
 }
+enemy.image.src = "images/enemy.png";
+var lastEnemySpan = 1000;//Used to ensure the enemy spans every 1000ms/1s
 
 var boss = {
 	x: 0,
@@ -519,16 +532,18 @@ var update = function (elapsed) {
     knight.update(elapsed);
     
     //Add enemy
-    if(enemies.length < 1){
-        var e = createEnemy();
+    if(enemies.length < 10 && lastEnemySpan >= 1000){
+        var e = Object.create(enemy);
         e.x = Math.round(Math.random() * canvas.width);
         e.y = canvas.height - 100 - e.height;
         enemies.push(e);
+        lastEnemySpan = 0;
     }
+    lastEnemySpan += elapsed;
     
-    boss.available = enemies.length > 5; //boss spawns if more than five enemies
+    boss.available = enemies.length > 10; //boss spawns if more than ten enemies have been spawned
     for(var i = 0; i < enemies.length; i++){
-    	boss.available = boss.available && !enemies[i].alive; //boss spawns if the more than five have been killed
+    	boss.available = boss.available && !enemies[i].alive; //boss spawns if the more than ten have been killed
         if(enemies[i].alive) enemies[i].update(elapsed); // if enemy alive then update enemy
     }
     
@@ -576,13 +591,12 @@ var render = function () {
 
 	knight.draw(ctx);
     
+    
+
+    
+
     // Timer image rendering
     ctx.font = "30px Impact";
-
-    for (var h = 0; h < knight.health; h++){
-    	ctx.drawImage(heart, 0, 0, 22, 18, 20+(20*h), 20, 22, 18);
-    }
-
     ctx.fillText(timerDigits.hundreds.toString(), (((canvas.width/2) - 30)), 40);
     ctx.fillText(timerDigits.tens.toString(), (((canvas.width/2) - 30) + 20), 40);
     ctx.fillText(timerDigits.ones.toString(), (((canvas.width/2) - 30) + 40), 40);
