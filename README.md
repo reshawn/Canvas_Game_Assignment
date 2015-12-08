@@ -28,4 +28,4 @@
 - include score and time in gameover 
 - include kyle sprite for boss enemy
 
-* means done
+asterix means done
