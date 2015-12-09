@@ -33,12 +33,23 @@ var velocityY = 0;
 var isGameRunning = false;
 var whichHover = "start";
 var isPause = false;
+//main menu
+var menuImages = {
+    startSelected: new Image(),
+    howToSelected: new Image()
+};
+menuImages.startSelected.src = "images/menuStartSelected.png"
+menuImages.howToSelected.src = "images/menuHowToSelected.png";
 //pause screen
 var pause = new Image();
 pause.src = "images/pause.png";
 //instructions screen
+var instruc = new Image();
+instruc.src = "images/instructions.png";
 var isOnInstr = false;
 //game over
+var gameoverScreen = new Image();
+gameoverScreen.src = "images/gameover_test.png";
 var isGameover = false;
 // final time and final score
 var finalTime = 0;
@@ -222,7 +233,6 @@ var knight = {
             velocityY += gravity;
             this.y += velocityY;
             if (this.y > (canvas.height - 100 - this.height)) {
-                console.log("u mad bro");
                 this.y = canvas.height - 100 - this.height;
                 velocityY = 0;
                 gravity = 0;
@@ -232,7 +242,7 @@ var knight = {
     draw: function (context) {
         //Draw Knight Health
         for (var h = 0; h < knight.health; h++) {
-            ctx.drawImage(heart, 0, 0, 22, 18, 20 + (20 * h), 20, 22, 18);
+            context.drawImage(heart, 20 + (20 * h), 20, 22, 18);
         }
 
         if (this.imageReady) {
@@ -292,7 +302,7 @@ var knight = {
 
             // Render image to canvas
             if (this.health > 0) {
-                ctx.drawImage(
+                context.drawImage(
                     this.image,
                     spriteX, 0, effectiveWidth, this.height,
                     effectiveX, this.y, effectiveWidth, this.height
@@ -301,7 +311,7 @@ var knight = {
             if (this.health === 0) {
                 spriteX = (64 * death.deathFrame);
 
-                ctx.drawImage(
+                context.drawImage(
                     death.image,
                     spriteX, 0, effectiveWidth, this.height,
                     effectiveX, this.y, effectiveWidth, this.height
@@ -310,8 +320,8 @@ var knight = {
 
         } else {
             // Image not ready. Draw a green box
-            ctx.fillStyle = "green";
-            ctx.fillRect(this.x, this.y, this.width, this.height);
+            context.fillStyle = "green";
+            context.fillRect(this.x, this.y, this.width, this.height);
         }
     }
 };
@@ -631,38 +641,18 @@ var render = function () {
     }
 }
 
+
+
 var mainMenu = function () {
     if (isGameover) // if game is over then run game over instead of main menu
         gameover();
-
     else {
-
-        var mainImages = {
-            startScreen: new Image(),
-            unselectedStart: new Image(),
-            selectedStart: new Image(),
-            unselectedHowTo: new Image(),
-            selectedHowTo: new Image(),
-            pause: new Image(),
-
-        };
-
-        mainImages.startScreen.src = "images/mainMenu.png";
-        mainImages.unselectedStart.src = "images/unselectedStart.png";
-        mainImages.selectedStart.src = "images/selectedStart.png";
-        mainImages.unselectedHowTo.src = "images/unselectedHowTo.png";
-        mainImages.selectedHowTo.src = "images/selectedHowTo.png";
-        // mainImages.pause.src = "images/pause.png";
-
-        ctx.drawImage(mainImages.startScreen, 0, 0, 1000, 700);
-
         if (whichHover === "start") { // white border around start button or "hover cursor" over start button
-            ctx.drawImage(mainImages.selectedStart, 100, 350, 200, 70);
-            ctx.drawImage(mainImages.unselectedHowTo, 100, 450, 200, 70);
+             ctx.drawImage(menuImages.startSelected, 0, 0, canvas.width, canvas.height);
         } else if (whichHover === "howTo") { // white border around how to button or "hover cursor" over how to button
-            ctx.drawImage(mainImages.unselectedStart, 100, 350, 200, 70);
-            ctx.drawImage(mainImages.selectedHowTo, 100, 450, 200, 70);
+             ctx.drawImage(menuImages.howToSelected, 0, 0, canvas.width, canvas.height);
         }
+        
 
         // only start game is enter is pressed while hovering over start
         if (13 in keysDown && whichHover === "start") { //select start
@@ -691,21 +681,13 @@ var mainMenu = function () {
 }
 
 
-
-
-
 var instructions = function () {
-
-    var instruc = new Image();
-    instruc.src = "images/instructions.png";
-
-    ctx.drawImage(instruc, 0, 0, 1000, 700);
+    ctx.drawImage(instruc, 0, 0, canvas.width, canvas.height);
 
     isOnInstr = true;
 
     if (27 in keysDown) //Esc to go back to main menu
         isOnInstr = false;
-
 }
 
 var pauseScreen = function () {
@@ -713,12 +695,9 @@ var pauseScreen = function () {
 }
 
 function gameover() {
-    var gameoverScreen = new Image();
     console.log(finalTime);
 
-    gameoverScreen.src = "images/gameover_test.png";
-
-    ctx.drawImage(gameoverScreen, 0, 0, 1000, 700);
+    ctx.drawImage(gameoverScreen, 0, 0, canvas.width, canvas.height);
     ctx.fillStyle = "black";
     ctx.fillText("You Lasted ", ((canvas.width / 2) - 150), 50);
     ctx.fillText(finalTime.toString(), (((canvas.width / 2) - 30) + 20), 50);
@@ -745,8 +724,6 @@ function resetGame() {
     timer = 0;
     //reset enemies
     enemies = [];
-
-
 }
 
 // Main game loop
@@ -772,10 +749,6 @@ var main = function () {
 
 // Start the main game loop!
 var last = Date.now();
-
-
-
-
 var interval = setInterval(main, 1000 / 60);
 
 
@@ -788,7 +761,6 @@ var lastSec = Date.now();
 var myVar = setInterval(myTimer, 1000);
 
 function myTimer() {
-
     var now = Date.now();
     var delta = now - lastSec;
     lastSec = now;
