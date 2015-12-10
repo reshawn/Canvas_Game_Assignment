@@ -76,7 +76,8 @@ var score = 0;
 
 //Sword sound
 var swingPlayed = false;
-function swingSoundLoad(){
+
+function swingSoundLoad() {
     var swingSound = new Audio("sounds/sword-gesture.mp3");
     swingSound.volume = .5;
     swingSound.load();
@@ -84,14 +85,15 @@ function swingSoundLoad(){
     return swingSound;
 }
 
-function playSwingSound(){
+function playSwingSound() {
     var swingSound = swingSoundLoad();
     swingSound.play();
 }
 
 //Jump sound
 var jumpPlayed = false;
-function jumpSoundLoad(){
+
+function jumpSoundLoad() {
     var jumpSound = new Audio("sounds/jump.mp3");
     jumpSound.volume = .5;
     jumpSound.load();
@@ -99,14 +101,15 @@ function jumpSoundLoad(){
     return jumpSound;
 }
 
-function playJumpSound(){
+function playJumpSound() {
     var jumpSound = jumpSoundLoad();
     jumpSound.play();
 }
 
 //hurt sound
 var hurtPlayed = false;
-function hurtSoundLoad(){
+
+function hurtSoundLoad() {
     var hurtSound = new Audio("sounds/grunt.mp3");
     hurtSound.volume = .5;
     hurtSound.load();
@@ -114,14 +117,15 @@ function hurtSoundLoad(){
     return hurtSound;
 }
 
-function playHurtSound(){
+function playHurtSound() {
     var hurtSound = hurtSoundLoad();
-   hurtSound.play();
+    hurtSound.play();
 }
 
 //Death sound
 var deathPlayed = false;
-function deathSoundLoad(){
+
+function deathSoundLoad() {
     console.log("it worked");
     var deathSound = new Audio("sounds/explosion.wav");
     deathSound.volume = .5;
@@ -130,9 +134,9 @@ function deathSoundLoad(){
     return deathSound;
 }
 
-function playDeathSound(){
+function playDeathSound() {
     var deathSound = deathSoundLoad();
-   deathSound.play();
+    deathSound.play();
 }
 
 // end of sound stuff ********************************************************************************************************************
@@ -210,7 +214,7 @@ var knight = {
 
         // 	ATTACKING ANIMATION **************************************************************************
         // Update hero animation
-        if (this.isAttacking && !swingPlayed){
+        if (this.isAttacking && !swingPlayed) {
             playSwingSound();
             swingPlayed = true;
         }
@@ -233,7 +237,7 @@ var knight = {
                         if (enemies[i].alive && enemies[i].health > 0 && enemies[i].inAttackingRange) {
                             // only deduct enemy health if in range and if enemy health isn't 0
                             enemies[i].health -= 1;
-                            if (bossAvailable){
+                            if (bossAvailable) {
                                 if (enemies[i].direction === 1)
                                     enemies[i].x -= 10;
                                 else
@@ -252,7 +256,7 @@ var knight = {
         }
 
         // KNIGHT HURT FRAME ****************************************************************************
-        if (knight.isHurt && !hurtPlayed){
+        if (knight.isHurt && !hurtPlayed) {
             playHurtSound();
             hurtPlayed = true;
         }
@@ -268,7 +272,7 @@ var knight = {
         }
         //KNIGHT DEATH ANIMATION ***********************************************************************
         if (this.health === 0) {
-            if (!deathPlayed){
+            if (!deathPlayed) {
                 playDeathSound();
                 deathPlayed = true;
             }
@@ -331,7 +335,7 @@ var knight = {
             this.midAir = false;
         }
 
-        if (this.jumping && !jumpPlayed && !this.onGround){
+        if (this.jumping && !jumpPlayed && !this.onGround) {
             playJumpSound();
             jumpPlayed = true;
         }
@@ -817,14 +821,14 @@ var update = function (elapsed) {
     if (!bossAvailable) {
         if (lastEnemySpawn >= 1000) {
             var e = Object.create(enemy);
-            e.x = Math.random() < 0.5 ? 0 : 1000 ; // randomly spawn at either end of canvas
+            e.x = Math.random() < 0.5 ? 0 : 1000; // randomly spawn at either end of canvas
             enemies.push(e);
             lastEnemySpawn = 0;
         }
     } else {
         if (lastEnemySpawn >= 500) {
             var e = Object.create(boss);
-            e.x = Math.random() < 0.5 ? 0 : 1000 ; // randomly spawn at either end of canvas
+            e.x = Math.random() < 0.5 ? 0 : 1000; // randomly spawn at either end of canvas
             enemies.push(e);
             lastEnemySpawn = 0;
         }
@@ -1032,14 +1036,14 @@ for (var a = 0; a < MAX_PARTS; a++) {
 
 function draw() {
     if (isGameRunning) {
-        ctx2.clearRect(0, 0, canvas2.width , canvas2.height);
+        ctx2.clearRect(0, 0, canvas2.width, canvas2.height);
         for (var i = 0; i < particles.length; i++) {
             var p = particles[i];
             ctx2.beginPath();
             ctx2.moveTo(p.x, p.y);
             ctx2.lineTo(p.x + p.l * p.xs, p.y + p.l * p.ys);
             ctx2.stroke();
-            
+
             p.x += p.xs;
             p.y += p.ys;
             if (p.x > canvas2.width || p.y > canvas2.height) {
@@ -1047,7 +1051,7 @@ function draw() {
                 p.y = -20;
             }
         }
-    }else{
+    } else {
         ctx2.clearRect(0, 0, canvas2.width, canvas2.height);
     }
 }
