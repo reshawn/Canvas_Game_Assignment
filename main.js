@@ -142,16 +142,17 @@ var knight = {
                     this.attackFrame = 0;
                     this.lastAttack = 0;
                     this.isAttacking = false;
+                     //Check if any enemies are in the range of the attack
+                    for (var i = 0; i < enemies.length; i++) {
+                            if (enemies[i].alive && enemies[i].health > 0 && enemies[i].inAttackingRange) {
+                                // only deduct enemy health if in range and if enemy health isn't 0
+                                enemies[i].health -= 1;
+                            }
+                        }
                 }
             }
 
-            //Check if any enemies are in the range of the attack
-            for (var i = 0; i < enemies.length; i++) {
-                    if (enemies[i].alive && enemies[i].health > 0 && enemies[i].inAttackingRange) {
-                        // only deduct enemy health if in range and if enemy health isn't 0
-                        enemies[i].health -= 1;
-                    }
-                }
+           
         }
 
         // KNIGHT HURT FRAME ****************************************************************************
@@ -554,7 +555,7 @@ var boss = {
             this.walkFrame = 0; //If close enough set the frame to the beginning
             this.inAttackingRange = true;
             this.attackSet = distanceBetween < 0 ? 0 : 1;
-            if (this.lastAttack >= 250 && knight.onGround) { // in attacking range and time since last attack is 500ms
+            if (this.lastAttack >= 500 && knight.onGround) { // in attacking range and time since last attack is 500ms
                 this.attackTimer += elapsed;
                 this.isAttacking = true;
                 if (this.attackTimer >= this.animDelay) {
