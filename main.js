@@ -23,6 +23,22 @@ addEventListener("keyup", function (e) {
     knight.still = true;
 }, false);
 
+canvas.addEventListener("click", function(e){
+    //Use offsetX, offsetY or layerX, layerY to check where the user clicked on the canvas
+    var x = e.offsetX, y = e.offsetY;
+    if(!isGameRunning && (x >= 100 && x <= 300) ){//Main Menu
+        if(y >= 350 && y <= 420){//Click Start
+            resetGame();
+            isGameRunning = true;
+        }else if(y >= 450 && y <= 520){//Click Instructions
+            isOnInstr = true;
+        }
+    }else if(isGameover && (x >= 440 && x <= 540) && (y >= 430 && y <= 490)) {//Click Try Again on Game Over Screen
+        resetGame();
+        isGameover = false;
+        isGameRunning = true;
+    }
+}, false);
 
 
 //fixed jumping physics variables
@@ -868,7 +884,6 @@ function resetGame() {
 
 // Main game loop
 var main = function () {
-
     // Calculate time since last frame
     var now = Date.now();
     var delta = (now - last);
