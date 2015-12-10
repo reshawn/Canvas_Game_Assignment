@@ -162,18 +162,24 @@ var knight = {
                         if (enemies[i].alive && enemies[i].health > 0 && enemies[i].inAttackingRange) {
                             // only deduct enemy health if in range and if enemy health isn't 0
                             enemies[i].health -= 1;
+                            console.log(enemies[i].health);
+                            if (bossAvailable){
+                            if (enemies[i].direction === 1)
+                                enemies[i].x -= 10;
+                            else
+                                enemies[i].x += 10;
+                        }
                         }
                     }
                 }
                 for (var i = 0; i < enemies.length; i++) { // activate is hurt during attack anim so enemy can't attack during this period
                     if (enemies[i].alive && enemies[i].health > 0 && enemies[i].inAttackingRange) {
                         // only activate isHurt if in range and if enemy health isn't 0
-                        enemies[i].isHurt = true;
+                        enemies[i].isHurt = true;    
                     }
                 }
             }
         }
-
         // KNIGHT HURT FRAME ****************************************************************************
         if (knight.isHurt) {
             this.hurtTimer += elapsed;
@@ -366,7 +372,7 @@ var enemy = {
     y: 0,
     width: 32,
     height: 64,
-    speed: 125,
+    speed: 175,
     direction: 0,
     walkSet: 0,
     walkFrame: 0,
@@ -523,7 +529,7 @@ var boss = {
     y: 0,
     width: 32,
     height: 64,
-    speed: 200,
+    speed: 150,
     direction: 0,
     walkSet: 0,
     jumpSet: 0,
@@ -539,7 +545,7 @@ var boss = {
     available: false,
     isHurt: false,
     hurtTimer: 0,
-    hurtDelay: 200,
+    hurtDelay: 500,
     alive: true,
     health: 3,
     lastAttack: 500,
@@ -593,11 +599,11 @@ var boss = {
             }
 
             var distance = Math.round(this.speed * (elapsed / 1000));
-            if (knight.x > this.x) { //Knight is on the right
+            if (knight.x > this.x && !this.isHurt) { //Knight is on the right
                 this.x += distance;
                 this.direction = 1;
                 this.walkSet = 0
-            } else if (knight.x + knight.width < this.x) { // Knight is on the left
+            } else if (knight.x + knight.width < this.x && !this.isHurt) { // Knight is on the left
                 this.x -= distance;
                 this.direction = -1;
                 this.walkSet = 1;
@@ -726,14 +732,14 @@ var update = function (elapsed) {
     if (!bossAvailable) {
         if (lastEnemySpawn >= 1000) {
             var e = Object.create(enemy);
-            e.x = Math.round(Math.random() * canvas.width);
+            e.x = Math.random() < 0.5 ? 0 : 1000 ; // randomly spawn at either end of canvas
             enemies.push(e);
             lastEnemySpawn = 0;
         }
     } else {
         if (lastEnemySpawn >= 500) {
             var e = Object.create(boss);
-            e.x = Math.round(Math.random() * canvas.width);
+            e.x = Math.random() < 0.5 ? 0 : 1000 ;
             enemies.push(e);
             lastEnemySpawn = 0;
         }
