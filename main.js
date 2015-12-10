@@ -2,6 +2,7 @@
 
 
 var canvas = document.createElement("canvas");
+canvas.id = 'canvas';
 canvas.width = 1000;
 canvas.height = 700;
 document.body.appendChild(canvas);
@@ -26,7 +27,7 @@ addEventListener("keyup", function (e) {
 
 
 //fixed jumping physics variables
-var gravity = 0.5;
+var gravity = 0.35;
 var velocityY = 0;
 //initialize main menu variables
 var isGameRunning = false;
@@ -62,7 +63,6 @@ var death = { //seperate object made for death for reusability of the animation
     image: new Image(),
     imageReady: false,
 };
-
 death.image.onload = function () {
     knight.imageReady = true;
 };
@@ -233,7 +233,9 @@ var knight = {
                 velocityY = 0;
                 gravity = 0;
             }
+
         }
+
     },
     draw: function (context) {
         //Draw Knight Health
@@ -365,7 +367,7 @@ var enemy = {
         var distanceBetween = this.x - knight.x;
         this.lastAttack += elapsed;
         // ENEMY DEATH ANIMATION *************************************************************************************
-        if (this.health === 0) { 
+        if (this.health === 0) {
             death.timer += elapsed;
             if (death.timer >= this.animDelay) {
                 // Enough time has passed to update the animation frame
@@ -375,7 +377,7 @@ var enemy = {
                 if (death.deathFrame >= death.numFrames) {
                     // We've reached the end of the animation frames; rewind
                     this.alive = false;
-                    death.deathFrame = 0;   
+                    death.deathFrame = 0;
                 }
             }
         }
@@ -406,7 +408,7 @@ var enemy = {
                 this.x -= distance;
                 this.walkSet = 1;
             }
-        // ENEMY ATTACK *************************************************************************************************
+            // ENEMY ATTACK *************************************************************************************************
         } else {
             this.walkFrame = 0; //If close enough set the frame to the beginning
             this.inAttackingRange = true;
@@ -431,15 +433,14 @@ var enemy = {
     draw: function (context) {
         var spriteX;
         if (this.imageReady) {
-            if (this.health > 0){ // if enemy is alive
+            if (this.health > 0) { // if enemy is alive
                 if (!this.inAttackingRange || !knight.onGround)
                     spriteX = (this.walkSet * (this.width * this.walkNumFrames)) + (this.walkFrame * this.width);
                 else
                     spriteX = (2 * this.walkNumFrames * this.width) + (this.attackSet * 70) + (this.attackFrame * this.width);
 
                 context.drawImage(this.image, spriteX, 0, this.width, this.height, this.x, this.y, this.width, this.height);
-            }
-            else { // if enemy health === 0 so death animation
+            } else { // if enemy health === 0 so death animation
                 spriteX = (64 * death.deathFrame);
 
                 context.drawImage(
@@ -447,7 +448,7 @@ var enemy = {
                     spriteX, 0, 64, 64,
                     this.x, this.y, this.width, this.height
                 );
-            } 
+            }
         } else {
             context.fillStyle = "green";
             context.fillRect(this.x, this.y, this.width, this.height);
@@ -488,7 +489,7 @@ var boss = {
         var distanceBetween = this.x - knight.x;
         this.lastAttack += elapsed;
         // ENEMY DEATH ANIMATION *************************************************************************************
-        if (this.health === 0) { 
+        if (this.health === 0) {
             death.timer += elapsed;
             if (death.timer >= this.animDelay) {
                 // Enough time has passed to update the animation frame
@@ -498,7 +499,7 @@ var boss = {
                 if (death.deathFrame >= death.numFrames) {
                     // We've reached the end of the animation frames; rewind
                     this.alive = false;
-                    death.deathFrame = 0;   
+                    death.deathFrame = 0;
                 }
             }
         }
@@ -529,7 +530,7 @@ var boss = {
                 this.x -= distance;
                 this.walkSet = 1;
             }
-        // ENEMY ATTACK *************************************************************************************************
+            // ENEMY ATTACK *************************************************************************************************
         } else {
             this.walkFrame = 0; //If close enough set the frame to the beginning
             this.inAttackingRange = true;
@@ -553,11 +554,10 @@ var boss = {
     },
     draw: function (context) {
         if (this.imageReady) {
-            if (this.health > 0){ // if enemy is alive
+            if (this.health > 0) { // if enemy is alive
                 context.drawImage(this.image, 0, 0, this.width, this.height,
                     this.x, this.y, this.width, this.height);
-            }
-            else { // if enemy health === 0 so death animation
+            } else { // if enemy health === 0 so death animation
                 var spriteX = (64 * death.deathFrame);
 
                 context.drawImage(
@@ -565,7 +565,7 @@ var boss = {
                     spriteX, 0, 64, 64,
                     this.x, this.y, this.width, this.height
                 );
-            } 
+            }
         } else {
             context.fillStyle = "black";
             context.fillRect(this.x, this.y, this.width, this.height);
@@ -598,11 +598,11 @@ var handleInput = function () {
     if (32 in keysDown && knight.onGround) { //space
         knight.jumping = true;
         velocityY = -12;
-        gravity = 0.5;
+        gravity = 0.35;
 
     }
 
-    if (90 in keysDown && knight.onGround && knight.lastAttack>=250) {
+    if (90 in keysDown && knight.onGround && knight.lastAttack >= 250) {
         knight.isAttacking = true;
         // knight.still = false;
     }
@@ -668,13 +668,8 @@ var update = function (elapsed) {
     }
 };
 
-
 var render = function () {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    //	ctx.fillStyle = "grey";
-    //	ctx.fillRect(0,0,canvas.width,canvas.height-100);
-    //	ctx.fillStyle = "black";
-    //	ctx.fillRect(0,(canvas.height-100),canvas.width,100);
 
     knight.draw(ctx);
 
@@ -686,7 +681,7 @@ var render = function () {
     ctx.fillText(timerDigits.ones.toString(), (((canvas.width / 2) - 30) + 40), 40);
 
     for (var i = 0; i < enemies.length; i++) {
-        if (enemies[i].alive) 
+        if (enemies[i].alive)
             enemies[i].draw(ctx);
     }
 }
@@ -696,11 +691,11 @@ var mainMenu = function () {
         gameover();
     else {
         if (whichHover === "start") { // white border around start button or "hover cursor" over start button
-             ctx.drawImage(menuImages.startSelected, 0, 0, canvas.width, canvas.height);
+            ctx.drawImage(menuImages.startSelected, 0, 0, canvas.width, canvas.height);
         } else if (whichHover === "howTo") { // white border around how to button or "hover cursor" over how to button
-             ctx.drawImage(menuImages.howToSelected, 0, 0, canvas.width, canvas.height);
+            ctx.drawImage(menuImages.howToSelected, 0, 0, canvas.width, canvas.height);
         }
-        
+
 
         // only start game is enter is pressed while hovering over start
         if (13 in keysDown && whichHover === "start") { //select start
@@ -772,6 +767,7 @@ function resetGame() {
 }
 
 // Main game loop
+
 var main = function () {
 
     // Calculate time since last frame
@@ -809,8 +805,66 @@ function myTimer() {
     var now = Date.now();
     var delta = now - lastSec;
     lastSec = now;
-    if (!isPause && isGameRunning) { //only update timer if unpaused; so now and lastSec continue changing 
+    if (!isPause && isGameRunning) { //only update timer if unpaused; so now and lastSec continue changing
         //even when paused so delta remains 1sec after unpause and only if the game is actually running (not in menus)
         timer += delta;
     }
 }
+
+//Rain ===========================================================================
+
+var canvas2 = document.getElementById("canvas2");
+var ctx2 = canvas2.getContext("2d");
+
+var w = canvas2.width;
+var h = canvas2.height;
+ctx2.strokeStyle = 'rgba(174,194,224,0.5)';
+ctx2.lineWidth = 1;
+ctx2.lineCap = 'round';
+
+var init = [];
+var maxParts = 1000;
+for (var a = 0; a < maxParts; a++) {
+    init.push({
+        x: Math.random() * w,
+        y: Math.random() * h,
+        l: Math.random() * 1,
+        xs: -4 + Math.random() * 4 + 2,
+        ys: Math.random() * 10 + 10
+    })
+}
+
+var particles = [];
+for (var b = 0; b < maxParts; b++) {
+    particles[b] = init[b];
+}
+
+function draw() {
+    if (isGameRunning) {
+        ctx2.clearRect(0, 0, w, h);
+        for (var c = 0; c < particles.length; c++) {
+            var p = particles[c];
+            ctx2.beginPath();
+            ctx2.moveTo(p.x, p.y);
+            ctx2.lineTo(p.x + p.l * p.xs, p.y + p.l * p.ys);
+            ctx2.stroke();
+        }
+        move();
+    }
+}
+
+function move() {
+    for (var b = 0; b < particles.length; b++) {
+        var p = particles[b];
+        p.x += p.xs;
+        p.y += p.ys;
+        if (p.x > w || p.y > h) {
+            p.x = Math.random() * w;
+            p.y = -20;
+        }
+    }
+}
+
+setInterval(draw, 30);
+
+//==========================================================================

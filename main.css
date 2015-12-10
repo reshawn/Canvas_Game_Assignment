@@ -14,11 +14,15 @@ body {
     height: 2000;
     width: 1200;
     background-color: #003d80;
+    position: relative;
 }
 
 canvas {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
     margin: auto;
-    display: block;
     border: 8px solid white;
     border-radius: 4px;
 }
@@ -30,6 +34,11 @@ canvas {
     font-style: oblique;
 }
 
-canvas {
-    background: url(images/background.png)
+#canvas {
+    background: url(images/background.png);
+    z-index: 0;
+}
+
+#canvas2 {
+    z-index: 1;
 }
