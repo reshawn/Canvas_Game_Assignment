@@ -85,7 +85,7 @@ death.image.onload = function () {
 };
 death.image.src = "images/death.png";
 
-heart = new Image();
+var heart = new Image();
 heart.src = "images/heart.png";
 
 var knight = {
@@ -923,52 +923,41 @@ function myTimer() {
 var canvas2 = document.getElementById("canvas2");
 var ctx2 = canvas2.getContext("2d");
 
-var w = canvas2.width;
-var h = canvas2.height;
 ctx2.strokeStyle = 'rgba(174,194,224,0.5)';
 ctx2.lineWidth = 1;
 ctx2.lineCap = 'round';
 
-var init = [];
-var maxParts = 1000;
-for (var a = 0; a < maxParts; a++) {
-    init.push({
-        x: Math.random() * w,
-        y: Math.random() * h,
+var particles = [];
+var MAX_PARTS = 1000;
+for (var a = 0; a < MAX_PARTS; a++) {
+    particles.push({
+        x: Math.random() * canvas2.width,
+        y: Math.random() * canvas2.height,
         l: Math.random() * 1,
         xs: -4 + Math.random() * 4 + 2,
         ys: Math.random() * 10 + 10
     })
 }
 
-var particles = [];
-for (var b = 0; b < maxParts; b++) {
-    particles[b] = init[b];
-}
-
 function draw() {
     if (isGameRunning) {
-        ctx2.clearRect(0, 0, w, h);
-        for (var c = 0; c < particles.length; c++) {
-            var p = particles[c];
+        ctx2.clearRect(0, 0, canvas2.width , canvas2.height);
+        for (var i = 0; i < particles.length; i++) {
+            var p = particles[i];
             ctx2.beginPath();
             ctx2.moveTo(p.x, p.y);
             ctx2.lineTo(p.x + p.l * p.xs, p.y + p.l * p.ys);
             ctx2.stroke();
+            
+            p.x += p.xs;
+            p.y += p.ys;
+            if (p.x > canvas2.width || p.y > canvas2.height) {
+                p.x = Math.random() * canvas2.width;
+                p.y = -20;
+            }
         }
-        move();
-    }
-}
-
-function move() {
-    for (var b = 0; b < particles.length; b++) {
-        var p = particles[b];
-        p.x += p.xs;
-        p.y += p.ys;
-        if (p.x > w || p.y > h) {
-            p.x = Math.random() * w;
-            p.y = -20;
-        }
+    }else{
+        ctx2.clearRect(0, 0, canvas2.width, canvas2.height);
     }
 }
 
