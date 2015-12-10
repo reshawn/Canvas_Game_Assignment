@@ -72,6 +72,72 @@ var isGameover = false;
 var finalTime = 0;
 var score = 0;
 
+//Sound***********************************************************************************************************************************
+
+//Sword sound
+var swingPlayed = false;
+function swingSoundLoad(){
+    var swingSound = new Audio("sounds/sword-gesture.mp3");
+    swingSound.volume = .5;
+    swingSound.load();
+    swingSound.loop = false;
+    return swingSound;
+}
+
+function playSwingSound(){
+    var swingSound = swingSoundLoad();
+    swingSound.play();
+}
+
+//Jump sound
+var jumpPlayed = false;
+function jumpSoundLoad(){
+    var jumpSound = new Audio("sounds/jump.mp3");
+    jumpSound.volume = .5;
+    jumpSound.load();
+    jumpSound.loop = false;
+    return jumpSound;
+}
+
+function playJumpSound(){
+    var jumpSound = jumpSoundLoad();
+    jumpSound.play();
+}
+
+//hurt sound
+var hurtPlayed = false;
+function hurtSoundLoad(){
+    var hurtSound = new Audio("sounds/grunt.mp3");
+    hurtSound.volume = .5;
+    hurtSound.load();
+    hurtSound.loop = false;
+    return hurtSound;
+}
+
+function playHurtSound(){
+    var hurtSound = hurtSoundLoad();
+   hurtSound.play();
+}
+
+//Death sound
+var deathPlayed = false;
+function deathSoundLoad(){
+    console.log("it worked");
+    var deathSound = new Audio("sounds/explosion.wav");
+    deathSound.volume = .5;
+    deathSound.load();
+    deathSound.loop = false;
+    return deathSound;
+}
+
+function playDeathSound(){
+    var deathSound = deathSoundLoad();
+   deathSound.play();
+}
+
+// end of sound stuff ********************************************************************************************************************
+
+
 
 var death = { //seperate object made for death for reusability of the animation
     timer: 0,
@@ -144,6 +210,10 @@ var knight = {
 
         // 	ATTACKING ANIMATION **************************************************************************
         // Update hero animation
+        if (this.isAttacking && !swingPlayed){
+            playSwingSound();
+            swingPlayed = true;
+        }
         this.lastAttack += elapsed;
         if (this.isAttacking && !this.isHurt) {
             this.attackTimer += elapsed;
@@ -157,30 +227,29 @@ var knight = {
                     this.attackFrame = 0;
                     this.lastAttack = 0;
                     this.isAttacking = false;
+                    swingPlayed = false;
                     //Check if any enemies are in the range of the attack
                     for (var i = 0; i < enemies.length; i++) { //deduct health after attack anim so that 1 health per attack is taken
                         if (enemies[i].alive && enemies[i].health > 0 && enemies[i].inAttackingRange) {
                             // only deduct enemy health if in range and if enemy health isn't 0
                             enemies[i].health -= 1;
-                            console.log(enemies[i].health);
-                            if (bossAvailable){
-                            if (enemies[i].direction === 1)
-                                enemies[i].x -= 10;
-                            else
-                                enemies[i].x += 10;
-                        }
                         }
                     }
                 }
                 for (var i = 0; i < enemies.length; i++) { // activate is hurt during attack anim so enemy can't attack during this period
                     if (enemies[i].alive && enemies[i].health > 0 && enemies[i].inAttackingRange) {
                         // only activate isHurt if in range and if enemy health isn't 0
-                        enemies[i].isHurt = true;    
+                        enemies[i].isHurt = true;
                     }
                 }
             }
         }
+
         // KNIGHT HURT FRAME ****************************************************************************
+        if (knight.isHurt && !hurtPlayed){
+            playHurtSound();
+            hurtPlayed = true;
+        }
         if (knight.isHurt) {
             this.hurtTimer += elapsed;
             this.direction = 0;
@@ -188,10 +257,15 @@ var knight = {
                 //hurt frame has been showed enough
                 this.hurtTimer = 0; // Reset the animation timer
                 knight.isHurt = false;
+                hurtPlayed = false;
             }
         }
         //KNIGHT DEATH ANIMATION ***********************************************************************
         if (this.health === 0) {
+            if (!deathPlayed){
+                playDeathSound();
+                deathPlayed = true;
+            }
             death.timer += elapsed;
             if (death.timer >= this.animDelay) {
                 // Enough time has passed to update the animation frame
@@ -202,6 +276,7 @@ var knight = {
                     // We've reached the end of the animation frames; rewind
                     this.isAlive = false;
                     death.deathFrame = 0;
+                    deathPlayed = false;
                 }
             }
         }
@@ -250,7 +325,10 @@ var knight = {
             this.midAir = false;
         }
 
-
+        if (this.jumping && !jumpPlayed && !this.onGround){
+            playJumpSound();
+            jumpPlayed = true;
+        }
         if (this.jumping || !this.onGround) {
             velocityY += gravity;
             this.y += velocityY;
@@ -258,6 +336,7 @@ var knight = {
                 this.y = canvas.height - 100 - this.height;
                 velocityY = 0;
                 gravity = 0;
+                jumpPlayed = false;
             }
 
         }
@@ -372,7 +451,7 @@ var enemy = {
     y: 0,
     width: 32,
     height: 64,
-    speed: 175,
+    speed: 125,
     direction: 0,
     walkSet: 0,
     walkFrame: 0,
@@ -529,7 +608,7 @@ var boss = {
     y: 0,
     width: 32,
     height: 64,
-    speed: 150,
+    speed: 200,
     direction: 0,
     walkSet: 0,
     jumpSet: 0,
@@ -545,7 +624,7 @@ var boss = {
     available: false,
     isHurt: false,
     hurtTimer: 0,
-    hurtDelay: 500,
+    hurtDelay: 200,
     alive: true,
     health: 3,
     lastAttack: 500,
@@ -599,11 +678,11 @@ var boss = {
             }
 
             var distance = Math.round(this.speed * (elapsed / 1000));
-            if (knight.x > this.x && !this.isHurt) { //Knight is on the right
+            if (knight.x > this.x) { //Knight is on the right
                 this.x += distance;
                 this.direction = 1;
                 this.walkSet = 0
-            } else if (knight.x + knight.width < this.x && !this.isHurt) { // Knight is on the left
+            } else if (knight.x + knight.width < this.x) { // Knight is on the left
                 this.x -= distance;
                 this.direction = -1;
                 this.walkSet = 1;
@@ -732,14 +811,14 @@ var update = function (elapsed) {
     if (!bossAvailable) {
         if (lastEnemySpawn >= 1000) {
             var e = Object.create(enemy);
-            e.x = Math.random() < 0.5 ? 0 : 1000 ; // randomly spawn at either end of canvas
+            e.x = Math.round(Math.random() * canvas.width);
             enemies.push(e);
             lastEnemySpawn = 0;
         }
     } else {
         if (lastEnemySpawn >= 500) {
             var e = Object.create(boss);
-            e.x = Math.random() < 0.5 ? 0 : 1000 ;
+            e.x = Math.round(Math.random() * canvas.width);
             enemies.push(e);
             lastEnemySpawn = 0;
         }
