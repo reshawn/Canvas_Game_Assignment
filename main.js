@@ -24,6 +24,23 @@ addEventListener("keyup", function (e) {
     knight.still = true;
 }, false);
 
+canvas.addEventListener("click", function (e) {
+    //Use offsetX, offsetY or layerX, layerY to check where the user clicked on the canvas
+    var x = e.offsetX,
+        y = e.offsetY;
+    if (!isGameRunning && (x >= 100 && x <= 300)) { //Main Menu
+        if (y >= 350 && y <= 420) { //Click Start
+            resetGame();
+            isGameRunning = true;
+        } else if (y >= 450 && y <= 520) { //Click Instructions
+            isOnInstr = true;
+        }
+    } else if (isGameover && (x >= 440 && x <= 540) && (y >= 430 && y <= 490)) { //Click Try Again on Game Over Screen
+        resetGame();
+        isGameover = false;
+        isGameRunning = true;
+    }
+}, false);
 
 
 //fixed jumping physics variables
@@ -53,7 +70,7 @@ gameoverScreen.src = "images/gameover_test.png";
 var isGameover = false;
 // final time and final score
 var finalTime = 0;
-var finalScore = 0;
+var score = 0;
 
 
 var death = { //seperate object made for death for reusability of the animation
@@ -128,9 +145,7 @@ var knight = {
         // 	ATTACKING ANIMATION **************************************************************************
         // Update hero animation
         this.lastAttack += elapsed;
-        if (this.isAttacking) {
-            //walking===true so animation continues to completion of current cycle
-            //so that frame isn't frozen midcycle by still condition
+        if (this.isAttacking && !this.isHurt) {
             this.attackTimer += elapsed;
             if (this.attackTimer >= this.animDelay) {
                 // Enough time has passed to update the animation frame
@@ -142,14 +157,19 @@ var knight = {
                     this.attackFrame = 0;
                     this.lastAttack = 0;
                     this.isAttacking = false;
+                    //Check if any enemies are in the range of the attack
+                    for (var i = 0; i < enemies.length; i++) { //deduct health after attack anim so that 1 health per attack is taken
+                        if (enemies[i].alive && enemies[i].health > 0 && enemies[i].inAttackingRange) {
+                            // only deduct enemy health if in range and if enemy health isn't 0
+                            enemies[i].health -= 1;
+                        }
+                    }
                 }
-            }
-
-            //Check if any enemies are in the range of the attack
-            for (var i = 0; i < enemies.length; i++) {
-                if (enemies[i].alive && enemies[i].health > 0 && enemies[i].inAttackingRange) {
-                    // only deduct enemy health if in range and if enemy health isn't 0
-                    enemies[i].health -= 1;
+                for (var i = 0; i < enemies.length; i++) { // activate is hurt during attack anim so enemy can't attack during this period
+                    if (enemies[i].alive && enemies[i].health > 0 && enemies[i].inAttackingRange) {
+                        // only activate isHurt if in range and if enemy health isn't 0
+                        enemies[i].isHurt = true;
+                    }
                 }
             }
         }
@@ -344,28 +364,43 @@ var enemies = [];
 var enemy = {
     x: 0,
     y: 0,
-    width: 35,
-    height: 42,
+    width: 32,
+    height: 64,
     speed: 125,
     direction: 0,
     walkSet: 0,
     walkFrame: 0,
-    walkNumFrames: 4,
+    walkNumFrames: 5,
     walkTimer: 0,
     animDelay: 50,
     attackFrame: 0,
-    attackNumFrames: 2,
+    attackNumFrames: 4,
     attackTimer: 0,
     image: new Image(),
     imageReady: false,
     alive: true,
+    isHurt: false,
+    hurtTimer: 0,
+    hurtDelay: 200,
     health: 1,
     lastAttack: 500,
+    isAttacking: false,
     inAttackingRange: false,
     attackSet: 0,
     update: function (elapsed) {
         var distanceBetween = this.x - knight.x;
         this.lastAttack += elapsed;
+
+        // ENEMY HURT FRAME ***************************************************************************************
+        if (this.isHurt) {
+            this.hurtTimer += elapsed;
+            if (this.hurtTimer >= this.hurtDelay) {
+                //hurt frame has been showed enough
+                this.hurtTimer = 0; // Reset the animation timer
+                this.isHurt = false;
+            }
+        }
+
         // ENEMY DEATH ANIMATION *************************************************************************************
         if (this.health === 0) {
             death.timer += elapsed;
@@ -377,6 +412,7 @@ var enemy = {
                 if (death.deathFrame >= death.numFrames) {
                     // We've reached the end of the animation frames; rewind
                     this.alive = false;
+                    score++;
                     death.deathFrame = 0;
                 }
             }
@@ -387,6 +423,7 @@ var enemy = {
         //If it < 64 that means that this enemy is being drawn next to the kniht on the right
         else if (distanceBetween < -35 || distanceBetween > 64) { //If not in attacking range then move closer
             this.inAttackingRange = false;
+            this.isAttacking = false; //if the knight moves while enemy is mid attack then change back to walking anim
             this.walkTimer += elapsed;
             if (this.walkTimer >= this.animDelay) {
                 // Enough time has passed to update the animation frame
@@ -403,9 +440,11 @@ var enemy = {
             var distance = Math.round(this.speed * (elapsed / 1000));
             if (knight.x > this.x) { //Knight is on the right
                 this.x += distance;
+                this.direction = 1;
                 this.walkSet = 0
             } else if (knight.x + knight.width < this.x) { // Knight is on the left
                 this.x -= distance;
+                this.direction = -1;
                 this.walkSet = 1;
             }
             // ENEMY ATTACK *************************************************************************************************
@@ -413,8 +452,9 @@ var enemy = {
             this.walkFrame = 0; //If close enough set the frame to the beginning
             this.inAttackingRange = true;
             this.attackSet = distanceBetween < 0 ? 0 : 1;
-            if (this.lastAttack >= 500 && knight.onGround) { // in attacking range and time since last attack is 500ms
+            if (this.lastAttack >= 500 && knight.onGround && !this.isHurt) { // in attacking range and time since last attack is 500ms
                 this.attackTimer += elapsed;
+                this.isAttacking = true;
                 if (this.attackTimer >= this.animDelay) {
                     this.attackTimer = 0;
                     this.attackFrame++;
@@ -424,6 +464,7 @@ var enemy = {
                         knight.health -= 1;
                         knight.isHurt = true;
                         this.lastAttack = 0;
+                        this.isAttacking = false;
                     }
 
                 }
@@ -431,15 +472,29 @@ var enemy = {
         }
     },
     draw: function (context) {
-        var spriteX;
         if (this.imageReady) {
+            var spriteX, effectiveWidth = this.width,
+                effectiveX = this.x; //effective variables for adjusting width and x to suit attack frames
             if (this.health > 0) { // if enemy is alive
-                if (!this.inAttackingRange || !knight.onGround)
+                if (this.isHurt) {
+                    if (this.direction === -1)
+                        spriteX = 992;
+                    else
+                        spriteX = 960;
+                } else if (!this.isAttacking || !knight.onGround) //if not attacking (i.e. walking or waiting to attack)
                     spriteX = (this.walkSet * (this.width * this.walkNumFrames)) + (this.walkFrame * this.width);
-                else
-                    spriteX = (2 * this.walkNumFrames * this.width) + (this.attackSet * 70) + (this.attackFrame * this.width);
-
-                context.drawImage(this.image, spriteX, 0, this.width, this.height, this.x, this.y, this.width, this.height);
+                else if (this.isAttacking) {
+                    spriteX = (2 * this.walkNumFrames * this.width) + (this.attackSet * 256) + (this.attackFrame * 64);
+                    effectiveWidth = 64;
+                    if (this.direction === -1) //if facing left
+                        effectiveX = this.x - 32;
+                    else //if facing right
+                        effectiveX = this.x;
+                } else {
+                    effectiveWidth = this.width;
+                    effectiveX = this.x;
+                }
+                context.drawImage(this.image, spriteX, 0, effectiveWidth, this.height, effectiveX, this.y, effectiveWidth, this.height);
             } else { // if enemy health === 0 so death animation
                 spriteX = (64 * death.deathFrame);
 
@@ -459,35 +514,49 @@ enemy.y = canvas.height - 100 - enemy.height;
 enemy.image.onload = function () {
     enemy.imageReady = true;
 }
-enemy.image.src = "images/enemy.png";
+enemy.image.src = "images/enemy_sheet.png";
 var lastEnemySpawn = 1000; //Used to ensure the enemy spans every 1000ms/1s
 
 var bossAvailable = false;
 var boss = {
     x: 0,
     y: 0,
-    width: 64,
+    width: 32,
     height: 64,
     speed: 200,
     direction: 0,
     walkSet: 0,
     jumpSet: 0,
     walkFrame: 0,
-    walkNumFrames: 6,
+    walkNumFrames: 5,
     walkTimer: 0,
     animDelay: 50,
     attackFrame: 0,
-    attackNumFrames: 2,
+    attackNumFrames: 4,
     attackTimer: 0,
     image: new Image(),
     imageReady: false,
     available: false,
+    isHurt: false,
+    hurtTimer: 0,
+    hurtDelay: 200,
     alive: true,
     health: 3,
     lastAttack: 500,
     update: function (elapsed) {
         var distanceBetween = this.x - knight.x;
         this.lastAttack += elapsed;
+
+        // ENEMY HURT FRAME ***************************************************************************************
+        if (this.isHurt) {
+            this.hurtTimer += elapsed;
+            if (this.hurtTimer >= this.hurtDelay) {
+                //hurt frame has been showed enough
+                this.hurtTimer = 0; // Reset the animation timer
+                this.isHurt = false;
+            }
+        }
+
         // ENEMY DEATH ANIMATION *************************************************************************************
         if (this.health === 0) {
             death.timer += elapsed;
@@ -499,6 +568,7 @@ var boss = {
                 if (death.deathFrame >= death.numFrames) {
                     // We've reached the end of the animation frames; rewind
                     this.alive = false;
+                    score++;
                     death.deathFrame = 0;
                 }
             }
@@ -509,6 +579,7 @@ var boss = {
         //If it < 64 that means that this enemy is being drawn next to the kniht on the right
         else if (distanceBetween < -64 || distanceBetween > 64) { //If not in attacking range then move closer
             this.inAttackingRange = false;
+            this.isAttacking = false; //if the knight moves while enemy is mid attack then change back to walking anim
             this.walkTimer += elapsed;
             if (this.walkTimer >= this.animDelay) {
                 // Enough time has passed to update the animation frame
@@ -521,13 +592,14 @@ var boss = {
                 }
             }
 
-
             var distance = Math.round(this.speed * (elapsed / 1000));
             if (knight.x > this.x) { //Knight is on the right
                 this.x += distance;
+                this.direction = 1;
                 this.walkSet = 0
             } else if (knight.x + knight.width < this.x) { // Knight is on the left
                 this.x -= distance;
+                this.direction = -1;
                 this.walkSet = 1;
             }
             // ENEMY ATTACK *************************************************************************************************
@@ -535,8 +607,9 @@ var boss = {
             this.walkFrame = 0; //If close enough set the frame to the beginning
             this.inAttackingRange = true;
             this.attackSet = distanceBetween < 0 ? 0 : 1;
-            if (this.lastAttack >= 500 && knight.onGround) { // in attacking range and time since last attack is 500ms
+            if (this.lastAttack >= 500 && knight.onGround && !this.isHurt) { // in attacking range and time since last attack is 500ms
                 this.attackTimer += elapsed;
+                this.isAttacking = true;
                 if (this.attackTimer >= this.animDelay) {
                     this.attackTimer = 0;
                     this.attackFrame++;
@@ -546,6 +619,7 @@ var boss = {
                         knight.health -= 1;
                         knight.isHurt = true;
                         this.lastAttack = 0;
+                        this.isAttacking = false;
                     }
 
                 }
@@ -554,11 +628,30 @@ var boss = {
     },
     draw: function (context) {
         if (this.imageReady) {
+            var spriteX, effectiveWidth = this.width,
+                effectiveX = this.x; //effective variables for adjusting width and x to suit attack frames
             if (this.health > 0) { // if enemy is alive
-                context.drawImage(this.image, 0, 0, this.width, this.height,
-                    this.x, this.y, this.width, this.height);
+                if (this.isHurt) {
+                    if (this.direction === -1)
+                        spriteX = 992;
+                    else
+                        spriteX = 960;
+                } else if (!this.isAttacking || !knight.onGround) //if not attacking (i.e. walking or waiting to attack)
+                    spriteX = (this.walkSet * (this.width * this.walkNumFrames)) + (this.walkFrame * this.width);
+                else if (this.isAttacking) {
+                    spriteX = (2 * this.walkNumFrames * this.width) + (this.attackSet * 256) + (this.attackFrame * 64);
+                    effectiveWidth = 64;
+                    if (this.direction === -1) //if facing left
+                        effectiveX = this.x - 32;
+                    else //if facing right
+                        effectiveX = this.x;
+                } else {
+                    effectiveWidth = this.width;
+                    effectiveX = this.x;
+                }
+                context.drawImage(this.image, spriteX, 0, effectiveWidth, this.height, effectiveX, this.y, effectiveWidth, this.height);
             } else { // if enemy health === 0 so death animation
-                var spriteX = (64 * death.deathFrame);
+                spriteX = (64 * death.deathFrame);
 
                 context.drawImage(
                     death.image,
@@ -567,7 +660,7 @@ var boss = {
                 );
             }
         } else {
-            context.fillStyle = "black";
+            context.fillStyle = "green";
             context.fillRect(this.x, this.y, this.width, this.height);
         }
     }
@@ -576,20 +669,20 @@ boss.y = (canvas.height - 100) - (boss.height);
 boss.image.onload = function () {
     boss.imageReady = true;
 }
-boss.image.src = "images/test.png";
+boss.image.src = "images/enemy_sheet.png";
 
 
 var handleInput = function () {
     // Stop moving the playa
     knight.direction = 0;
 
-    if (37 in keysDown) {
+    if (37 in keysDown && !knight.isAttacking) { // left arrow key
         knight.direction = -1;
         knight.still = false;
         knight.facing = "left";
     }
 
-    if (39 in keysDown) {
+    if (39 in keysDown && !knight.isAttacking) { // right arrow key
         knight.direction = 1;
         knight.still = false;
         knight.facing = "right";
@@ -602,7 +695,7 @@ var handleInput = function () {
 
     }
 
-    if (90 in keysDown && knight.onGround && knight.lastAttack >= 250) {
+    if (90 in keysDown && knight.onGround && knight.lastAttack >= 250) { // z
         knight.isAttacking = true;
         // knight.still = false;
     }
@@ -630,11 +723,20 @@ var update = function (elapsed) {
     knight.update(elapsed);
 
     //Add enemy
-    if (lastEnemySpawn >= 1000) {
-        var e = Object.create(bossAvailable ? boss : enemy);
-        e.x = Math.round(Math.random() * canvas.width);
-        enemies.push(e);
-        lastEnemySpawn = 0;
+    if (!bossAvailable) {
+        if (lastEnemySpawn >= 1000) {
+            var e = Object.create(enemy);
+            e.x = Math.round(Math.random() * canvas.width);
+            enemies.push(e);
+            lastEnemySpawn = 0;
+        }
+    } else {
+        if (lastEnemySpawn >= 500) {
+            var e = Object.create(boss);
+            e.x = Math.round(Math.random() * canvas.width);
+            enemies.push(e);
+            lastEnemySpawn = 0;
+        }
     }
     lastEnemySpawn += elapsed;
 
@@ -673,12 +775,15 @@ var render = function () {
 
     knight.draw(ctx);
 
-    // Timer image rendering
+    // Count up timer rendering
     ctx.font = "30px Impact";
     ctx.fillStyle = "white";
     ctx.fillText(timerDigits.hundreds.toString(), (((canvas.width / 2) - 30)), 40);
     ctx.fillText(timerDigits.tens.toString(), (((canvas.width / 2) - 30) + 20), 40);
     ctx.fillText(timerDigits.ones.toString(), (((canvas.width / 2) - 30) + 40), 40);
+    // Score rendering
+    ctx.fillText("Kills: ", 150, 40);
+    ctx.fillText(score.toString(), 220, 40);
 
     for (var i = 0; i < enemies.length; i++) {
         if (enemies[i].alive)
@@ -739,9 +844,10 @@ var pauseScreen = function () {
 function gameover() {
     ctx.drawImage(gameoverScreen, 0, 0, canvas.width, canvas.height);
     ctx.fillStyle = "black";
-    ctx.fillText("You Lasted ", ((canvas.width / 2) - 150), 50);
+    ctx.fillText("Time: ", ((canvas.width / 2) - 90), 50);
     ctx.fillText(finalTime.toString(), (((canvas.width / 2) - 30) + 20), 50);
-    ctx.fillText(" Seconds", ((canvas.width / 2) + 20), 50);
+    ctx.fillText("Kills: ", ((canvas.width / 2) - 90), 100);
+    ctx.fillText(score.toString(), (((canvas.width / 2) - 30) + 20), 100);
 
     if (27 in keysDown) //Esc to go back to main menu
         isGameover = false; // enter the 'else' in order to bring up main menu
@@ -762,6 +868,8 @@ function resetGame() {
     knight.isAlive = true;
     // reset timer
     timer = 0;
+    // reset score
+    score = 0;
     //reset enemies
     enemies = [];
 }
@@ -769,7 +877,6 @@ function resetGame() {
 // Main game loop
 
 var main = function () {
-
     // Calculate time since last frame
     var now = Date.now();
     var delta = (now - last);
