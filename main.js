@@ -150,7 +150,6 @@ var knight = {
                     if (enemies[i].alive && enemies[i].health > 0 && enemies[i].inAttackingRange) {
                         // only deduct enemy health if in range and if enemy health isn't 0
                         enemies[i].health -= 1;
-                        score ++;
                     }
                 }
         }
@@ -377,6 +376,7 @@ var enemy = {
                 if (death.deathFrame >= death.numFrames) {
                     // We've reached the end of the animation frames; rewind
                     this.alive = false;
+                    score++;
                     death.deathFrame = 0;   
                 }
             }
@@ -514,6 +514,7 @@ var boss = {
                 if (death.deathFrame >= death.numFrames) {
                     // We've reached the end of the animation frames; rewind
                     this.alive = false;
+                    score++;
                     death.deathFrame = 0;   
                 }
             }
