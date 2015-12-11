@@ -14,18 +14,22 @@
 - Score Tracker / Kill Counter *
 - Game Over Screen *
 - Main Menu Screen *
-- Sound ~(Christian and Denique)
-    - Jump
-    - Slash miss
-    - Slash hit
-    - Enemy punch Hit
-    - death
-    - Background
-- platforms and bg ~(Vishaal)
-- put together enemy sprite sheet
-- add death anim for enemies 
-- score tracker 
-- include score and time in gameover 
-- include kyle sprite for boss enemy
+- Sound *
+    - Jump *
+    - Slash miss *
+    - Slash hit *
+    - Enemy punch Hit *
+    - death *
+    - Background *
+- platforms and bg 
+    - background image *
+    - platform detection for knight ~
+    - platform detection for enemies
+- put together enemy sprite sheet *
+- add death anim for enemies *
+- score tracker *
+- include score and time in gameover *
+- include kyle sprite for boss enemy *
 
 asterix means done
+tilde means in progress
