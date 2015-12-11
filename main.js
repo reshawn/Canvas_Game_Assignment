@@ -90,68 +90,41 @@ var score = 0;
 
 //Sound***********************************************************************************************************************************
 
+var bgAudio = document.getElementById("bgAudio");
+
+
+function loadSound(name) {
+    var sound = new Audio("sounds/" + name);
+    sound.load();
+    sound.loop = false;
+    return sound;
+}
+
 //Sword sound
 var swingPlayed = false;
-
-function swingSoundLoad() {
-    var swingSound = new Audio("sounds/sword-gesture.mp3");
-    swingSound.volume = .5;
-    swingSound.load();
-    swingSound.loop = false;
-    return swingSound;
-}
-
-function playSwingSound() {
-    var swingSound = swingSoundLoad();
-    swingSound.play();
-}
+var swingSound = loadSound("sword-gesture.mp3");
+swingSound.volume = 0.3;
 
 //Jump sound
 var jumpPlayed = false;
-
-function jumpSoundLoad() {
-    var jumpSound = new Audio("sounds/jump.mp3");
-    jumpSound.volume = .5;
-    jumpSound.load();
-    jumpSound.loop = false;
-    return jumpSound;
-}
-
-function playJumpSound() {
-    var jumpSound = jumpSoundLoad();
-    jumpSound.play();
-}
+var jumpSound = loadSound("jump.mp3");
+jumpSound.volume = .2;
 
 //hurt sound
 var hurtPlayed = false;
-
-function hurtSoundLoad() {
-    var hurtSound = new Audio("sounds/grunt.mp3");
-    hurtSound.volume = .5;
-    hurtSound.load();
-    hurtSound.loop = false;
-    return hurtSound;
-}
-
-function playHurtSound() {
-    var hurtSound = hurtSoundLoad();
-    hurtSound.play();
-}
+var hurtSound = loadSound("grunt.mp3");
+hurtSound.volume = .5;
 
 //Death sound
 var deathPlayed = false;
-function deathSoundLoad(){
-    var deathSound = new Audio("sounds/explosion.wav");
-    deathSound.volume = .5;
-    deathSound.load();
-    deathSound.loop = false;
-    return deathSound;
-}
+var deathSound = loadSound("explosion.wav");
+deathSound.volume = .5;
 
-function playDeathSound() {
-    var deathSound = deathSoundLoad();
-    deathSound.play();
-}
+//upon enemy hit
+var enemyHurtPlayed = false;
+var enemyHurtSound = loadSound("jab.mp3");
+enemyHurtSound.volume = 1;
+
 
 // end of sound stuff ********************************************************************************************************************
 
@@ -229,7 +202,9 @@ var knight = {
         // 	ATTACKING ANIMATION **************************************************************************
         // Update hero animation
         if (this.isAttacking && !swingPlayed) {
-            playSwingSound();
+            swingSound = loadSound("sword-gesture.mp3");
+            swingSound.volume = 0.3;
+            swingSound.play();
             swingPlayed = true;
         }
         this.lastAttack += elapsed;
@@ -264,6 +239,7 @@ var knight = {
                     if (enemies[i].alive && enemies[i].health > 0 && enemies[i].inAttackingRange) {
                         // only activate isHurt if in range and if enemy health isn't 0
                         enemies[i].isHurt = true;
+
                     }
                 }
             }
@@ -271,7 +247,9 @@ var knight = {
 
         // KNIGHT HURT FRAME ****************************************************************************
         if (knight.isHurt && !hurtPlayed) {
-            playHurtSound();
+            hurtSound = loadSound("Grunt.mp3");
+            hurtSound.play();
+            hurtSound.volume = .5;
             hurtPlayed = true;
         }
         if (knight.isHurt) {
@@ -287,7 +265,7 @@ var knight = {
         //KNIGHT DEATH ANIMATION ***********************************************************************
         if (this.health === 0) {
             if (!deathPlayed) {
-                playDeathSound();
+                deathSound.play();
                 deathPlayed = true;
             }
             death.timer += elapsed;
@@ -350,7 +328,9 @@ var knight = {
         }
 
         if (this.jumping && !jumpPlayed && !this.onGround) {
-            playJumpSound();
+            jumpSound = loadSound("Jump.mp3");
+            jumpSound.volume = .2;
+            jumpSound.play();
             jumpPlayed = true;
         }
         if (this.jumping || !this.onGround) {
@@ -500,13 +480,20 @@ var enemy = {
         var distanceBetween = this.x - knight.x;
         this.lastAttack += elapsed;
 
+        if (this.isHurt && !enemyHurtPlayed){
+            enemyHurtSound = loadSound("jab.mp3");
+            enemyHurtSound.play();
+            enemyHurtPlayed = true;
+        }
+
         // ENEMY HURT FRAME ***************************************************************************************
         if (this.isHurt) {
-            this.hurtTimer += elapsed;
+            this.hurtTimer += elapsed;   
             if (this.hurtTimer >= this.hurtDelay) {
                 //hurt frame has been showed enough
                 this.hurtTimer = 0; // Reset the animation timer
                 this.isHurt = false;
+                enemyHurtPlayed = false;
             }
         }
 
@@ -656,6 +643,12 @@ var boss = {
         var distanceBetween = this.x - knight.x;
         this.lastAttack += elapsed;
 
+        if (this.isHurt && !enemyHurtPlayed){
+            enemyHurtSound = loadSound("jab.mp3");
+            enemyHurtSound.play();
+            enemyHurtPlayed = true;
+        }
+
         // ENEMY HURT FRAME ***************************************************************************************
         if (this.isHurt) {
             this.hurtTimer += elapsed;
@@ -663,6 +656,7 @@ var boss = {
                 //hurt frame has been showed enough
                 this.hurtTimer = 0; // Reset the animation timer
                 this.isHurt = false;
+                enemyHurtPlayed = false;
             }
         }
 
@@ -1022,14 +1016,17 @@ var main = function () {
     var now = Date.now();
     var delta = (now - last);
     last = now;
-    if (!isGameRunning)
+    if (!isGameRunning){
+        bgAudio.pause();
         mainMenu(); //only run main menu if start was not hit; for now ;) 
+    }
+    
 
     handleInput();
     // Update game objects
     if (isGameRunning && !isPause) { //only run game loop if start was hit and the game is unpaused
         update(delta);
-
+        bgAudio.play();
         // Render to the screen
         render();
     } else if (isGameRunning && isPause)
