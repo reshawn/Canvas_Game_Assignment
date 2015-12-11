@@ -826,6 +826,7 @@ var handleInput = function () {
                 isGameRunning = true; //immeduately go back to game
             } else if(whichHover === "mainMenu"){
                 whichHover = "start";
+                delete keysDown[13];
             }
         }
     }else if(!isGameRunning && !isOnInstr){
@@ -976,7 +977,6 @@ function resetGame() {
     score = 0;
     //reset enemies
     enemies = [];
-    whichHover = "start";
 }
 
 // Main game loop
