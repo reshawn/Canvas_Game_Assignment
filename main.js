@@ -34,6 +34,8 @@ canvas.addEventListener("click", function (e) {
             isGameRunning = true;
         } else if (y >= 450 && y <= 520) { //Click Instructions
             isOnInstr = true;
+        }else if(y >= 555 && y <= 625){ //Click Story
+            isOnStory = true;
         }
     } else if (isGameover && (x >= 440 && x <= 540)) { //Game Over Screen
         if(y >= 430 && y <= 490){ //Click Try Again
@@ -43,7 +45,7 @@ canvas.addEventListener("click", function (e) {
         }else if(y >= 510 && y <= 570){ //Click Main Menu
             isGameover = false;
             whichHover = "start";
-        }   
+        }
     }
 }, false);
 
