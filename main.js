@@ -35,28 +35,35 @@ canvas.addEventListener("click", function (e) {
         } else if (y >= 450 && y <= 520) { //Click Instructions
             isOnInstr = true;
         }
-    } else if (isGameover && (x >= 440 && x <= 540) && (y >= 430 && y <= 490)) { //Click Try Again on Game Over Screen
-        resetGame();
-        isGameover = false;
-        isGameRunning = true;
+    } else if (isGameover && (x >= 440 && x <= 540)) { //Game Over Screen
+        if(y >= 430 && y <= 490){ //Click Try Again
+            resetGame();
+            isGameover = false;
+            isGameRunning = true;
+        }else if(y >= 510 && y <= 570){ //Click Main Menu
+            isGameover = false;
+            whichHover = "start";
+        }   
     }
 }, false);
 
 
 //fixed jumping physics variables
-var gravity = 0.35;
+var gravity = 0.5;
 var velocityY = 0;
 //initialize main menu variables
 var isGameRunning = false;
-var whichHover = "start";
+var whichHover = "start"; //valid options: start, howTo, tryAgain, mainMenu
 var isPause = false;
 //main menu
 var menuImages = {
     startSelected: new Image(),
-    howToSelected: new Image()
+    howToSelected: new Image(),
+    storySelected: new Image(),
 };
 menuImages.startSelected.src = "images/menuStartSelected.png"
 menuImages.howToSelected.src = "images/menuHowToSelected.png";
+menuImages.storySelected.src = "images/menuStorySelected.png";
 //pause screen
 var pause = new Image();
 pause.src = "images/pause.png";
@@ -64,13 +71,22 @@ pause.src = "images/pause.png";
 var instruc = new Image();
 instruc.src = "images/instructions.png";
 var isOnInstr = false;
+//story screen
+var storyScreen = new Image();
+storyScreen.src = "images/story.png";
+var isOnStory = false;
 //game over
-var gameoverScreen = new Image();
-gameoverScreen.src = "images/gameover_test.png";
+var gameoverImages = {
+    tryAgainSelected: new Image(),
+    mainMenuSelecetd: new Image()
+}
+gameoverImages.tryAgainSelected.src = "images/gameOverTryAgainSelected.png"
+gameoverImages.mainMenuSelecetd.src = "images/gameOverMainMenuSelected.png"
 var isGameover = false;
 // final time and final score
 var finalTime = 0;
 var score = 0;
+
 
 //Sound***********************************************************************************************************************************
 
@@ -122,7 +138,6 @@ function playHurtSound(){
 //Death sound
 var deathPlayed = false;
 function deathSoundLoad(){
-    console.log("it worked");
     var deathSound = new Audio("sounds/explosion.wav");
     deathSound.volume = .5;
     deathSound.load();
@@ -523,7 +538,7 @@ var enemy = {
 
                 if (this.walkFrame >= this.walkNumFrames) {
                     // We've reached the end of the animation frames; rewind
-                    this.walkFrame = 0;
+                    this.walkFrame = 1; //do not include first frame if walking
                 }
             }
 
@@ -621,9 +636,9 @@ var boss = {
     walkFrame: 0,
     walkNumFrames: 5,
     walkTimer: 0,
-    animDelay: 50,
+    animDelay: 70,
     attackFrame: 0,
-    attackNumFrames: 4,
+    attackNumFrames: 3,
     attackTimer: 0,
     image: new Image(),
     imageReady: false,
@@ -679,7 +694,7 @@ var boss = {
 
                 if (this.walkFrame >= this.walkNumFrames) {
                     // We've reached the end of the animation frames; rewind
-                    this.walkFrame = 0;
+                    this.walkFrame = 1;
                 }
             }
 
@@ -723,14 +738,15 @@ var boss = {
                 effectiveX = this.x; //effective variables for adjusting width and x to suit attack frames
             if (this.health > 0) { // if enemy is alive
                 if (this.isHurt) {
+                    effectiveWidth = 64;
                     if (this.direction === -1)
-                        spriteX = 992;
+                        spriteX = 896;
                     else
-                        spriteX = 960;
+                        spriteX = 832;
                 } else if (!this.isAttacking || !knight.onGround) //if not attacking (i.e. walking or waiting to attack)
                     spriteX = (this.walkSet * (this.width * this.walkNumFrames)) + (this.walkFrame * this.width);
                 else if (this.isAttacking) {
-                    spriteX = (2 * this.walkNumFrames * this.width) + (this.attackSet * 256) + (this.attackFrame * 64);
+                    spriteX = (2 * this.walkNumFrames * this.width) + (this.attackSet * 192) + (this.attackFrame * 64);
                     effectiveWidth = 64;
                     if (this.direction === -1) //if facing left
                         effectiveX = this.x - 32;
@@ -760,46 +776,109 @@ boss.y = (canvas.height - 100) - (boss.height);
 boss.image.onload = function () {
     boss.imageReady = true;
 }
-boss.image.src = "images/enemy_sheet.png";
+boss.image.src = "images/kylesheet.png";
 
 
 var handleInput = function () {
     // Stop moving the playa
     knight.direction = 0;
 
-    if (37 in keysDown && !knight.isAttacking) { // left arrow key
-        knight.direction = -1;
-        knight.still = false;
-        knight.facing = "left";
+    if(isGameRunning){
+        if (37 in keysDown && !knight.isAttacking) { // left arrow key
+            knight.direction = -1;
+            knight.still = false;
+            knight.facing = "left";
+        }
+
+        if (39 in keysDown && !knight.isAttacking) { // right arrow key
+            knight.direction = 1;
+            knight.still = false;
+            knight.facing = "right";
+        }
+
+        if (32 in keysDown && knight.onGround) { //space
+            knight.jumping = true;
+            velocityY = -12;
+            gravity = 0.5;
+
+        }
+
+        if (90 in keysDown && knight.onGround && knight.lastAttack >= 250) { // z
+            knight.isAttacking = true;
+            // knight.still = false;
+        }
+
+        if (80 in keysDown) { // P for pause
+            isPause = true;
+        }
+        if (85 in keysDown) { // U for unpause; different keys used because 
+            // isPause would switch from paused to unpaused 60 times per second when p is pressed so there's no control
+            // different keys allow for control
+            isPause = false;
+        }
+    } else if(isGameover){
+        if (40 in keysDown && whichHover === "tryAgain") // if hovering over start and down is pressed hover over main menu
+            whichHover = "mainMenu";
+        else if (38 in keysDown && whichHover === "mainMenu") // if hovering over main menu and up is pressed hover over try again
+            whichHover = "tryAgain";
+        if(13 in keysDown){
+            isGameover = false;
+            if(whichHover === "tryAgain"){
+                resetGame(); // reset immediately
+                isGameover = false;
+                isGameRunning = true; //immeduately go back to game
+            } else if(whichHover === "mainMenu"){
+                whichHover = "start";
+                delete keysDown[13];
+            }
+        }
+    }else if(!isGameRunning && !isOnInstr && !isOnStory){ //main menu
+        // only start game is enter is pressed while hovering over start
+        if (13 in keysDown && whichHover === "start") { //select start
+            resetGame(); // reset in case game was being played before
+            isGameRunning = true;
+        }
+
+
+        if (13 in keysDown && whichHover === "howTo") {
+            isOnInstr = true;
+        }
+
+        if (13 in keysDown && whichHover === "story") {
+            isOnStory = true;
+        }
+
+        // if hovering over start and down is pressed hover over how to
+        if (40 in keysDown && whichHover === "start"){
+            whichHover = "howTo";
+            delete keysDown[40];
+        }
+        // if hovering over howTo and up is pressed hover over start
+        if (38 in keysDown && whichHover === "howTo")
+            whichHover = "start";
+        // if hovering over howTo and down is pressed hover over story
+        if (40 in keysDown && whichHover === "howTo")
+            whichHover = "story";
+        // if hovering over story and up is pressed hover over how to
+        if (38 in keysDown && whichHover === "story"){
+            whichHover = "howTo";
+            delete keysDown[38];
+        }
+
+
+    } 
+
+    if(isOnInstr){
+        if (27 in keysDown) //Esc to go back to main menu
+            isOnInstr = false;
+    }
+    if(isOnStory){
+        if (27 in keysDown) //Esc to go back to main menu
+            isOnStory = false;
     }
 
-    if (39 in keysDown && !knight.isAttacking) { // right arrow key
-        knight.direction = 1;
-        knight.still = false;
-        knight.facing = "right";
-    }
-
-    if (32 in keysDown && knight.onGround) { //space
-        knight.jumping = true;
-        velocityY = -12;
-        gravity = 0.35;
-
-    }
-
-    if (90 in keysDown && knight.onGround && knight.lastAttack >= 250) { // z
-        knight.isAttacking = true;
-        // knight.still = false;
-    }
-
-    if (80 in keysDown) { // P for pause
-        isPause = true;
-    }
-    if (85 in keysDown) { // U for unpause; different keys used because 
-        // isPause would switch from paused to unpaused 60 times per second when p is pressed so there's no control
-        // different keys allow for control
-        isPause = false;
-    }
 };
+
 
 
 var update = function (elapsed) {
@@ -809,6 +888,8 @@ var update = function (elapsed) {
         finalTime = timerSeconds;
         isGameRunning = false; //knight dead so stop game
         isGameover = true;
+        whichHover = "tryAgain"; //set to tryAgain so for the game over screen to load correct image
+
     }
 
     knight.update(elapsed);
@@ -882,72 +963,37 @@ var render = function () {
     }
 }
 
-var mainMenu = function () {
-    if (isGameover) // if game is over then run game over instead of main menu
-        gameover();
+var mainMenu = function () { console.log (whichHover);
+    if (isGameover){ // if game is over then run game over instead of main menu
+        ctx.drawImage(whichHover === "tryAgain" ? gameoverImages.tryAgainSelected : gameoverImages.mainMenuSelecetd,
+                  0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "black";
+        ctx.fillText("Time: ", ((canvas.width / 2) - 90), 50);
+        ctx.fillText(finalTime.toString(), (((canvas.width / 2) - 30) + 20), 50);
+        ctx.fillText("Kills: ", ((canvas.width / 2) - 90), 100);
+        ctx.fillText(score.toString(), (((canvas.width / 2) - 30) + 20), 100); 
+    } 
+    else if (isOnInstr){ 
+        ctx.drawImage(instruc, 0, 0, canvas.width, canvas.height);
+    }
+    else if (isOnStory){
+        ctx.drawImage(storyScreen, 0, 0, canvas.width, canvas.height);
+    }
     else {
         if (whichHover === "start") { // white border around start button or "hover cursor" over start button
             ctx.drawImage(menuImages.startSelected, 0, 0, canvas.width, canvas.height);
-        } else if (whichHover === "howTo") { // white border around how to button or "hover cursor" over how to button
+        } if (whichHover === "howTo") { // white border around how to button or "hover cursor" over how to button
             ctx.drawImage(menuImages.howToSelected, 0, 0, canvas.width, canvas.height);
-        }
 
-
-        // only start game is enter is pressed while hovering over start
-        if (13 in keysDown && whichHover === "start") { //select start
-            resetGame(); // reset in case game was being played before
-            isGameRunning = true;
-        }
-
-
-        //for the instructions screen, due to the fact that the Enter key is used for entrance and exit, the 13 value remains in the
-        // keysDown array not allowing the user to control entrance and exit properly
-        // therefore the three instr variables and the two conditional setTimeouts were introduced
-        // this method attempts to allow for the user to enter and exit by pressing the enter key after a 100ms period on each
-        //but reentry still has issues even though it works in some circumstances
-
-        if (13 in keysDown && whichHover === "howTo" || isOnInstr) {
-            instructions();
-        }
-
-        // if hovering over start and down is pressed hover over how to
-        if (40 in keysDown && whichHover === "start")
-            whichHover = "howTo";
-        // if hovering over howTo and up is pressed hover over start
-        if (38 in keysDown && whichHover === "howTo")
-            whichHover = "start";
+        } else if (whichHover === "story") { // white border around story button or "hover cursor" over story button
+            ctx.drawImage(menuImages.storySelected, 0, 0, canvas.width, canvas.height);
+        }        
     }
 }
 
-var instructions = function () {
-    ctx.drawImage(instruc, 0, 0, canvas.width, canvas.height);
-
-    isOnInstr = true;
-
-    if (27 in keysDown) //Esc to go back to main menu
-        isOnInstr = false;
-}
 
 var pauseScreen = function () {
     ctx.drawImage(pause, (canvas.width / 2) - (290 / 2), (canvas.height / 2) - 50, 290, 100);
-}
-
-function gameover() {
-    ctx.drawImage(gameoverScreen, 0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = "black";
-    ctx.fillText("Time: ", ((canvas.width / 2) - 90), 50);
-    ctx.fillText(finalTime.toString(), (((canvas.width / 2) - 30) + 20), 50);
-    ctx.fillText("Kills: ", ((canvas.width / 2) - 90), 100);
-    ctx.fillText(score.toString(), (((canvas.width / 2) - 30) + 20), 100);
-
-    if (27 in keysDown) //Esc to go back to main menu
-        isGameover = false; // enter the 'else' in order to bring up main menu
-    if (13 in keysDown) { // enter to try again
-        resetGame(); // reset immediately
-        isGameover = false;
-        isGameRunning = true; //immeduately go back to game
-    }
-
 }
 
 function resetGame() {
