@@ -1,6 +1,4 @@
 //Create canvas and get context
-
-
 var canvas = document.createElement("canvas");
 canvas.id = 'canvas';
 canvas.width = 1000;
@@ -88,49 +86,6 @@ var isGameover = false;
 // final time and final score
 var finalTime = 0;
 var score = 0;
-
-
-//Sound***********************************************************************************************************************************
-
-var bgAudio = document.getElementById("bgAudio");
-
-
-function loadSound(name) {
-    var sound = new Audio("sounds/" + name);
-    sound.load();
-    sound.loop = false;
-    return sound;
-}
-
-//Sword sound
-var swingPlayed = false;
-var swingSound = loadSound("sword-gesture.mp3");
-swingSound.volume = 0.3;
-
-//Jump sound
-var jumpPlayed = false;
-var jumpSound = loadSound("jump.mp3");
-jumpSound.volume = .2;
-
-//hurt sound
-var hurtPlayed = false;
-var hurtSound = loadSound("grunt.mp3");
-hurtSound.volume = .5;
-
-//Death sound
-var deathPlayed = false;
-var deathSound = loadSound("explosion.wav");
-deathSound.volume = .5;
-
-//upon enemy hit
-var enemyHurtPlayed = false;
-var enemyHurtSound = loadSound("jab.mp3");
-enemyHurtSound.volume = 1;
-
-
-// end of sound stuff ********************************************************************************************************************
-
-
 
 var death = { //seperate object made for death for reusability of the animation
     timer: 0,
@@ -780,6 +735,49 @@ boss.image.onload = function () {
 }
 boss.image.src = "images/kylesheet.png";
 
+var enemyCount = 0;//Counter to keep track of the current active enemies on the screen
+
+
+//Sound***********************************************************************************************************************************
+
+var bgAudio = document.getElementById("bgAudio");
+
+
+function loadSound(name) {
+    var sound = new Audio("sounds/" + name);
+    sound.load();
+    sound.loop = false;
+    return sound;
+}
+
+//Sword sound
+var swingPlayed = false;
+var swingSound = loadSound("sword-gesture.mp3");
+swingSound.volume = 0.3;
+
+//Jump sound
+var jumpPlayed = false;
+var jumpSound = loadSound("jump.mp3");
+jumpSound.volume = .2;
+
+//hurt sound
+var hurtPlayed = false;
+var hurtSound = loadSound("grunt.mp3");
+hurtSound.volume = .5;
+
+//Death sound
+var deathPlayed = false;
+var deathSound = loadSound("explosion.wav");
+deathSound.volume = .5;
+
+//upon enemy hit
+var enemyHurtPlayed = false;
+var enemyHurtSound = loadSound("jab.mp3");
+enemyHurtSound.volume = 1;
+
+
+// end of sound stuff ********************************************************************************************************************
+
 
 var handleInput = function () {
     // Stop moving the playa
@@ -881,7 +879,6 @@ var handleInput = function () {
 
 };
 
-
 var enemyCount = 0; // counts how many enemies on the screen at one time
 var requiredNumberOfEnemies = 10; // number of enemies allowed on the screen at one time
 var requiredSpawnTime = 1000;
@@ -903,6 +900,7 @@ var update = function (elapsed) {
 
     //Add enemy
     if (!bossAvailable) {
+
         if ((lastEnemySpawn >= requiredSpawnTime)&& (enemyCount < requiredNumberOfEnemies)) { // stops from spawning if to many enemies on the screen
             enemyCount++;
             var e = Object.create(enemy);
@@ -913,7 +911,6 @@ var update = function (elapsed) {
     } else {
         if ((lastEnemySpawn >= requiredSpawnTime/*(requiredSpawnTime+250boss takes slightly longer to spawn*/) && (enemyCount < requiredNumberOfEnemies)) {// stops from spawning if to many enemies on the screen
             enemyCount++;
-            // enemies.length = 1;
             var e = Object.create(boss);
             e.x = Math.random() < 0.5 ? 0 : 1000; // randomly spawn at either end of canvas
             enemies.push(e);
@@ -921,9 +918,8 @@ var update = function (elapsed) {
         }
     }
     lastEnemySpawn += elapsed;
-    // console.log("Number of enemies = "+enemies.length);
-    // console.log(enemyCount);
     bossAvailable = (((enemies.length+1) % 10) === 0); //boss spawns if 9 mikkels have been spawned
+
     for (var i = 0; i < enemies.length; i++) {
         if (enemies[i].alive) enemies[i].update(elapsed); // if enemy alive then update enemy
     }
@@ -1027,10 +1023,12 @@ function resetGame() {
     //reset enemies
     enemies = [];
 
+
     enemyCount= 0;        // these 4 variables reset so that the correct number of enemies are allowed on the screen
     bossAvailable= false; // & at the correct spawn rate when u die and try again
     requiredNumberOfEnemies = 10;
     requiredSpawnTime = 1000;
+
 }
 
 // Main game loop
@@ -1112,8 +1110,8 @@ for (var a = 0; a < MAX_PARTS; a++) {
 }
 
 function draw() {
+    ctx2.clearRect(0, 0, canvas2.width, canvas2.height);
     if (isGameRunning) {
-        ctx2.clearRect(0, 0, canvas2.width, canvas2.height);
         for (var i = 0; i < particles.length; i++) {
             var p = particles[i];
             ctx2.beginPath();
@@ -1128,8 +1126,6 @@ function draw() {
                 p.y = -20;
             }
         }
-    } else {
-        ctx2.clearRect(0, 0, canvas2.width, canvas2.height);
     }
 }
 
