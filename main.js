@@ -510,6 +510,7 @@ var enemy = {
                 if (death.deathFrame >= death.numFrames) {
                     // We've reached the end of the animation frames; rewind
                     this.alive = false;
+                    enemyCount--;
                     score++;
                     death.deathFrame = 0;
                 }
@@ -570,6 +571,7 @@ var enemy = {
         }
     },
     draw: function (context) {
+
         if (this.imageReady) {
             var spriteX, effectiveWidth = this.width,
                 effectiveX = this.x; //effective variables for adjusting width and x to suit attack frames
@@ -673,6 +675,7 @@ var boss = {
                 if (death.deathFrame >= death.numFrames) {
                     // We've reached the end of the animation frames; rewind
                     this.alive = false;
+                    enemyCount--;
                     score++;
                     death.deathFrame = 0;
                 }
@@ -879,6 +882,7 @@ var handleInput = function () {
 };
 
 
+var enemyCount = 0;
 
 var update = function (elapsed) {
     var timerSeconds = (Math.floor(timer / 1000)); // must be declared before finalTime
@@ -893,16 +897,21 @@ var update = function (elapsed) {
 
     knight.update(elapsed);
 
+    //Enemy Spawn Control********************************************************************************************************************
+
     //Add enemy
     if (!bossAvailable) {
-        if (lastEnemySpawn >= 1000) {
+        if ((lastEnemySpawn >= 1000)&& (enemyCount<10)) {
+            enemyCount++;
             var e = Object.create(enemy);
             e.x = Math.random() < 0.5 ? 0 : 1000; // randomly spawn at either end of canvas
             enemies.push(e);
             lastEnemySpawn = 0;
         }
     } else {
-        if (lastEnemySpawn >= 500) {
+        if ((lastEnemySpawn >= 1500) && (enemyCount<10)) {
+            enemyCount++;
+            // enemies.length = 1;
             var e = Object.create(boss);
             e.x = Math.random() < 0.5 ? 0 : 1000; // randomly spawn at either end of canvas
             enemies.push(e);
@@ -910,11 +919,12 @@ var update = function (elapsed) {
         }
     }
     lastEnemySpawn += elapsed;
-
-    bossAvailable = enemies.length > 10; //boss spawns if more than ten enemies have been spawned
+    console.log(enemyCount);
+    bossAvailable = (((enemies.length+1) % 10) === 0); //boss spawns if more than ten enemies have been spawned
     for (var i = 0; i < enemies.length; i++) {
         if (enemies[i].alive) enemies[i].update(elapsed); // if enemy alive then update enemy
     }
+    //End of Enemy Spawn Control*************************************************************************************************************
 
     // TIMER FRAME UPDATE***********************************************************
     var timerNumDigits = Math.ceil(Math.log(timerSeconds + 1) / Math.LN10); //to get the "length" of the timerSeconds variable
@@ -939,6 +949,7 @@ var update = function (elapsed) {
         timerDigits.tens = 9;
         timerDigits.hundreds = 9;
     }
+    
 };
 
 var render = function () {
@@ -1009,6 +1020,8 @@ function resetGame() {
     score = 0;
     //reset enemies
     enemies = [];
+    enemyCount= 0;
+    bossAvailable= false;
 }
 
 // Main game loop
