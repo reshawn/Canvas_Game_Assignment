@@ -1,6 +1,4 @@
 //Create canvas and get context
-
-
 var canvas = document.createElement("canvas");
 canvas.id = 'canvas';
 canvas.width = 1000;
@@ -88,49 +86,6 @@ var isGameover = false;
 // final time and final score
 var finalTime = 0;
 var score = 0;
-
-
-//Sound***********************************************************************************************************************************
-
-var bgAudio = document.getElementById("bgAudio");
-
-
-function loadSound(name) {
-    var sound = new Audio("sounds/" + name);
-    sound.load();
-    sound.loop = false;
-    return sound;
-}
-
-//Sword sound
-var swingPlayed = false;
-var swingSound = loadSound("sword-gesture.mp3");
-swingSound.volume = 0.3;
-
-//Jump sound
-var jumpPlayed = false;
-var jumpSound = loadSound("jump.mp3");
-jumpSound.volume = .2;
-
-//hurt sound
-var hurtPlayed = false;
-var hurtSound = loadSound("grunt.mp3");
-hurtSound.volume = .5;
-
-//Death sound
-var deathPlayed = false;
-var deathSound = loadSound("explosion.wav");
-deathSound.volume = .5;
-
-//upon enemy hit
-var enemyHurtPlayed = false;
-var enemyHurtSound = loadSound("jab.mp3");
-enemyHurtSound.volume = 1;
-
-
-// end of sound stuff ********************************************************************************************************************
-
-
 
 var death = { //seperate object made for death for reusability of the animation
     timer: 0,
@@ -780,6 +735,49 @@ boss.image.onload = function () {
 }
 boss.image.src = "images/kylesheet.png";
 
+var enemyCount = 0;//Counter to keep track of the current active enemies on the screen
+
+
+//Sound***********************************************************************************************************************************
+
+var bgAudio = document.getElementById("bgAudio");
+
+
+function loadSound(name) {
+    var sound = new Audio("sounds/" + name);
+    sound.load();
+    sound.loop = false;
+    return sound;
+}
+
+//Sword sound
+var swingPlayed = false;
+var swingSound = loadSound("sword-gesture.mp3");
+swingSound.volume = 0.3;
+
+//Jump sound
+var jumpPlayed = false;
+var jumpSound = loadSound("jump.mp3");
+jumpSound.volume = .2;
+
+//hurt sound
+var hurtPlayed = false;
+var hurtSound = loadSound("grunt.mp3");
+hurtSound.volume = .5;
+
+//Death sound
+var deathPlayed = false;
+var deathSound = loadSound("explosion.wav");
+deathSound.volume = .5;
+
+//upon enemy hit
+var enemyHurtPlayed = false;
+var enemyHurtSound = loadSound("jab.mp3");
+enemyHurtSound.volume = 1;
+
+
+// end of sound stuff ********************************************************************************************************************
+
 
 var handleInput = function () {
     // Stop moving the playa
@@ -881,9 +879,6 @@ var handleInput = function () {
 
 };
 
-
-var enemyCount = 0;
-
 var update = function (elapsed) {
     var timerSeconds = (Math.floor(timer / 1000)); // must be declared before finalTime
 
@@ -901,7 +896,7 @@ var update = function (elapsed) {
 
     //Add enemy
     if (!bossAvailable) {
-        if ((lastEnemySpawn >= 1000)&& (enemyCount<10)) {
+        if ((lastEnemySpawn >= 1000) && (enemyCount<10)) {
             enemyCount++;
             var e = Object.create(enemy);
             e.x = Math.random() < 0.5 ? 0 : 1000; // randomly spawn at either end of canvas
@@ -911,7 +906,6 @@ var update = function (elapsed) {
     } else {
         if ((lastEnemySpawn >= 1500) && (enemyCount<10)) {
             enemyCount++;
-            // enemies.length = 1;
             var e = Object.create(boss);
             e.x = Math.random() < 0.5 ? 0 : 1000; // randomly spawn at either end of canvas
             enemies.push(e);
@@ -920,7 +914,7 @@ var update = function (elapsed) {
     }
     lastEnemySpawn += elapsed;
     console.log(enemyCount);
-    bossAvailable = (((enemies.length+1) % 10) === 0); //boss spawns if more than ten enemies have been spawned
+    bossAvailable = ((enemies.length + 1) % 10) === 0; //boss spawns if more than ten enemies have been spawned
     for (var i = 0; i < enemies.length; i++) {
         if (enemies[i].alive) enemies[i].update(elapsed); // if enemy alive then update enemy
     }
@@ -1020,8 +1014,8 @@ function resetGame() {
     score = 0;
     //reset enemies
     enemies = [];
-    enemyCount= 0;
-    bossAvailable= false;
+    enemyCount = 0;
+    bossAvailable = false;
 }
 
 // Main game loop
