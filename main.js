@@ -882,7 +882,9 @@ var handleInput = function () {
 };
 
 
-var enemyCount = 0;
+var enemyCount = 0; // counts how many enemies on the screen at one time
+var requiredNumberOfEnemies = 10; // number of enemies allowed on the screen at one time
+var requiredSpawnTime = 1000;
 
 var update = function (elapsed) {
     var timerSeconds = (Math.floor(timer / 1000)); // must be declared before finalTime
@@ -901,7 +903,7 @@ var update = function (elapsed) {
 
     //Add enemy
     if (!bossAvailable) {
-        if ((lastEnemySpawn >= 1000)&& (enemyCount<10)) {
+        if ((lastEnemySpawn >= requiredSpawnTime)&& (enemyCount < requiredNumberOfEnemies)) { // stops from spawning if to many enemies on the screen
             enemyCount++;
             var e = Object.create(enemy);
             e.x = Math.random() < 0.5 ? 0 : 1000; // randomly spawn at either end of canvas
@@ -909,7 +911,7 @@ var update = function (elapsed) {
             lastEnemySpawn = 0;
         }
     } else {
-        if ((lastEnemySpawn >= 1500) && (enemyCount<10)) {
+        if ((lastEnemySpawn >= requiredSpawnTime/*(requiredSpawnTime+250boss takes slightly longer to spawn*/) && (enemyCount < requiredNumberOfEnemies)) {// stops from spawning if to many enemies on the screen
             enemyCount++;
             // enemies.length = 1;
             var e = Object.create(boss);
@@ -919,14 +921,16 @@ var update = function (elapsed) {
         }
     }
     lastEnemySpawn += elapsed;
-    console.log(enemyCount);
-    bossAvailable = (((enemies.length+1) % 10) === 0); //boss spawns if more than ten enemies have been spawned
+    // console.log("Number of enemies = "+enemies.length);
+    // console.log(enemyCount);
+    bossAvailable = (((enemies.length+1) % 10) === 0); //boss spawns if 9 mikkels have been spawned
     for (var i = 0; i < enemies.length; i++) {
         if (enemies[i].alive) enemies[i].update(elapsed); // if enemy alive then update enemy
     }
+    
     //End of Enemy Spawn Control*************************************************************************************************************
 
-    // TIMER FRAME UPDATE***********************************************************
+    // TIMER FRAME UPDATE************************************************************************************************************
     var timerNumDigits = Math.ceil(Math.log(timerSeconds + 1) / Math.LN10); //to get the "length" of the timerSeconds variable
 
     // each digit value is stored in a separate variable of the timer object
@@ -951,6 +955,7 @@ var update = function (elapsed) {
     }
     
 };
+
 
 var render = function () {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -1000,6 +1005,7 @@ var mainMenu = function () {
 
         }        
     }
+
 }
 
 
@@ -1020,8 +1026,11 @@ function resetGame() {
     score = 0;
     //reset enemies
     enemies = [];
-    enemyCount= 0;
-    bossAvailable= false;
+
+    enemyCount= 0;        // these 4 variables reset so that the correct number of enemies are allowed on the screen
+    bossAvailable= false; // & at the correct spawn rate when u die and try again
+    requiredNumberOfEnemies = 10;
+    requiredSpawnTime = 1000;
 }
 
 // Main game loop
@@ -1046,6 +1055,16 @@ var main = function () {
         render();
     } else if (isGameRunning && isPause)
         pauseScreen();
+
+    // console.log("Number of enemies = "+enemies.length);
+    // console.log(enemyCount);
+    // console.log(requiredSpawnTime)
+
+    if (((enemies.length%10)===0)&&(lastEnemySpawn>requiredSpawnTime)){// allows more enemies to be on the screen at 
+        requiredNumberOfEnemies++;                                     // a time for every 10 kills you get and speeds their spawn time too
+        if (requiredSpawnTime>500)
+            requiredSpawnTime-=20;
+        }
 };
 
 // Start the main game loop!
