@@ -1093,8 +1093,8 @@ for (var a = 0; a < MAX_PARTS; a++) {
 }
 
 function draw() {
+    ctx2.clearRect(0, 0, canvas2.width, canvas2.height);
     if (isGameRunning) {
-        ctx2.clearRect(0, 0, canvas2.width, canvas2.height);
         for (var i = 0; i < particles.length; i++) {
             var p = particles[i];
             ctx2.beginPath();
@@ -1109,8 +1109,6 @@ function draw() {
                 p.y = -20;
             }
         }
-    } else {
-        ctx2.clearRect(0, 0, canvas2.width, canvas2.height);
     }
 }
 
