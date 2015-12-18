@@ -32,15 +32,15 @@ canvas.addEventListener("click", function (e) {
             isGameRunning = true;
         } else if (y >= 450 && y <= 520) { //Click Instructions
             isOnInstr = true;
-        }else if(y >= 555 && y <= 625){ //Click Story
+        } else if (y >= 555 && y <= 625) { //Click Story
             isOnStory = true;
         }
     } else if (isGameover && (x >= 440 && x <= 540)) { //Game Over Screen
-        if(y >= 430 && y <= 490){ //Click Try Again
+        if (y >= 430 && y <= 490) { //Click Try Again
             resetGame();
             isGameover = false;
             isGameRunning = true;
-        }else if(y >= 510 && y <= 570){ //Click Main Menu
+        } else if (y >= 510 && y <= 570) { //Click Main Menu
             isGameover = false;
             whichHover = "start";
         }
@@ -437,7 +437,7 @@ var enemy = {
         var distanceBetween = this.x - knight.x;
         this.lastAttack += elapsed;
 
-        if (this.isHurt && !enemyHurtPlayed){
+        if (this.isHurt && !enemyHurtPlayed) {
             enemyHurtSound = loadSound("jab.mp3");
             enemyHurtSound.play();
             enemyHurtPlayed = true;
@@ -445,7 +445,7 @@ var enemy = {
 
         // ENEMY HURT FRAME ***************************************************************************************
         if (this.isHurt) {
-            this.hurtTimer += elapsed;   
+            this.hurtTimer += elapsed;
             if (this.hurtTimer >= this.hurtDelay) {
                 //hurt frame has been showed enough
                 this.hurtTimer = 0; // Reset the animation timer
@@ -602,7 +602,7 @@ var boss = {
         var distanceBetween = this.x - knight.x;
         this.lastAttack += elapsed;
 
-        if (this.isHurt && !enemyHurtPlayed){
+        if (this.isHurt && !enemyHurtPlayed) {
             enemyHurtSound = loadSound("jab.mp3");
             enemyHurtSound.play();
             enemyHurtPlayed = true;
@@ -735,7 +735,7 @@ boss.image.onload = function () {
 }
 boss.image.src = "images/kylesheet.png";
 
-var enemyCount = 0;//Counter to keep track of the current active enemies on the screen
+var enemyCount = 0; //Counter to keep track of the current active enemies on the screen
 
 
 //Sound***********************************************************************************************************************************
@@ -783,7 +783,7 @@ var handleInput = function () {
     // Stop moving the playa
     knight.direction = 0;
 
-    if(isGameRunning){
+    if (isGameRunning) {
         if (37 in keysDown && !knight.isAttacking) { // left arrow key
             knight.direction = -1;
             knight.still = false;
@@ -816,23 +816,23 @@ var handleInput = function () {
             // different keys allow for control
             isPause = false;
         }
-    } else if(isGameover){
+    } else if (isGameover) {
         if (40 in keysDown && whichHover === "tryAgain") // if hovering over start and down is pressed hover over main menu
             whichHover = "mainMenu";
         else if (38 in keysDown && whichHover === "mainMenu") // if hovering over main menu and up is pressed hover over try again
             whichHover = "tryAgain";
-        if(13 in keysDown){
+        if (13 in keysDown) {
             isGameover = false;
-            if(whichHover === "tryAgain"){
+            if (whichHover === "tryAgain") {
                 resetGame(); // reset immediately
                 isGameover = false;
                 isGameRunning = true; //immeduately go back to game
-            } else if(whichHover === "mainMenu"){
+            } else if (whichHover === "mainMenu") {
                 whichHover = "start";
                 delete keysDown[13];
             }
         }
-    }else if(!isGameRunning && !isOnInstr && !isOnStory){ //main menu
+    } else if (!isGameRunning && !isOnInstr && !isOnStory) { //main menu
         // only start game is enter is pressed while hovering over start
         if (13 in keysDown && whichHover === "start") { //select start
             resetGame(); // reset in case game was being played before
@@ -849,7 +849,7 @@ var handleInput = function () {
         }
 
         // if hovering over start and down is pressed hover over how to
-        if (40 in keysDown && whichHover === "start"){
+        if (40 in keysDown && whichHover === "start") {
             whichHover = "howTo";
             delete keysDown[40];
         }
@@ -860,19 +860,19 @@ var handleInput = function () {
         if (40 in keysDown && whichHover === "howTo")
             whichHover = "story";
         // if hovering over story and up is pressed hover over how to
-        if (38 in keysDown && whichHover === "story"){
+        if (38 in keysDown && whichHover === "story") {
             whichHover = "howTo";
             delete keysDown[38];
         }
 
 
-    } 
+    }
 
-    if(isOnInstr){
+    if (isOnInstr) {
         if (27 in keysDown) //Esc to go back to main menu
             isOnInstr = false;
     }
-    if(isOnStory){
+    if (isOnStory) {
         if (27 in keysDown) //Esc to go back to main menu
             isOnStory = false;
     }
@@ -901,7 +901,7 @@ var update = function (elapsed) {
     //Add enemy
     if (!bossAvailable) {
 
-        if ((lastEnemySpawn >= requiredSpawnTime)&& (enemyCount < requiredNumberOfEnemies)) { // stops from spawning if to many enemies on the screen
+        if ((lastEnemySpawn >= requiredSpawnTime) && (enemyCount < requiredNumberOfEnemies)) { // stops from spawning if to many enemies on the screen
             enemyCount++;
             var e = Object.create(enemy);
             e.x = Math.random() < 0.5 ? 0 : 1000; // randomly spawn at either end of canvas
@@ -909,7 +909,7 @@ var update = function (elapsed) {
             lastEnemySpawn = 0;
         }
     } else {
-        if ((lastEnemySpawn >= requiredSpawnTime/*(requiredSpawnTime+250boss takes slightly longer to spawn*/) && (enemyCount < requiredNumberOfEnemies)) {// stops from spawning if to many enemies on the screen
+        if ((lastEnemySpawn >= requiredSpawnTime /*(requiredSpawnTime+250boss takes slightly longer to spawn*/ ) && (enemyCount < requiredNumberOfEnemies)) { // stops from spawning if to many enemies on the screen
             enemyCount++;
             var e = Object.create(boss);
             e.x = Math.random() < 0.5 ? 0 : 1000; // randomly spawn at either end of canvas
@@ -918,12 +918,12 @@ var update = function (elapsed) {
         }
     }
     lastEnemySpawn += elapsed;
-    bossAvailable = (((enemies.length+1) % 10) === 0); //boss spawns if 9 mikkels have been spawned
+    bossAvailable = (((enemies.length + 1) % 10) === 0); //boss spawns if 9 mikkels have been spawned
 
     for (var i = 0; i < enemies.length; i++) {
         if (enemies[i].alive) enemies[i].update(elapsed); // if enemy alive then update enemy
     }
-    
+
     //End of Enemy Spawn Control*************************************************************************************************************
 
     // TIMER FRAME UPDATE************************************************************************************************************
@@ -949,7 +949,7 @@ var update = function (elapsed) {
         timerDigits.tens = 9;
         timerDigits.hundreds = 9;
     }
-    
+
 };
 
 
@@ -975,31 +975,29 @@ var render = function () {
 }
 
 var mainMenu = function () {
-    if (isGameover){ // if game is over then run game over instead of main menu
+    if (isGameover) { // if game is over then run game over instead of main menu
         ctx.drawImage(whichHover === "tryAgain" ? gameoverImages.tryAgainSelected : gameoverImages.mainMenuSelecetd,
-                  0, 0, canvas.width, canvas.height);
+            0, 0, canvas.width, canvas.height);
         ctx.fillStyle = "black";
         ctx.fillText("Time: ", ((canvas.width / 2) - 90), 50);
         ctx.fillText(finalTime.toString(), (((canvas.width / 2) - 30) + 20), 50);
         ctx.fillText("Kills: ", ((canvas.width / 2) - 90), 100);
-        ctx.fillText(score.toString(), (((canvas.width / 2) - 30) + 20), 100); 
-    } 
-    else if (isOnInstr){ 
+        ctx.fillText(score.toString(), (((canvas.width / 2) - 30) + 20), 100);
+    } else if (isOnInstr) {
         ctx.drawImage(instruc, 0, 0, canvas.width, canvas.height);
-    }
-    else if (isOnStory){
+    } else if (isOnStory) {
         ctx.drawImage(storyScreen, 0, 0, canvas.width, canvas.height);
-    }
-    else {
+    } else {
         if (whichHover === "start") { // white border around start button or "hover cursor" over start button
             ctx.drawImage(menuImages.startSelected, 0, 0, canvas.width, canvas.height);
-        } if (whichHover === "howTo") { // white border around how to button or "hover cursor" over how to button
+        }
+        if (whichHover === "howTo") { // white border around how to button or "hover cursor" over how to button
             ctx.drawImage(menuImages.howToSelected, 0, 0, canvas.width, canvas.height);
 
         } else if (whichHover === "story") { // white border around story button or "hover cursor" over story button
             ctx.drawImage(menuImages.storySelected, 0, 0, canvas.width, canvas.height);
 
-        }        
+        }
     }
 
 }
@@ -1024,8 +1022,8 @@ function resetGame() {
     enemies = [];
 
 
-    enemyCount= 0;        // these 4 variables reset so that the correct number of enemies are allowed on the screen
-    bossAvailable= false; // & at the correct spawn rate when u die and try again
+    enemyCount = 0; // these 4 variables reset so that the correct number of enemies are allowed on the screen
+    bossAvailable = false; // & at the correct spawn rate when u die and try again
     requiredNumberOfEnemies = 10;
     requiredSpawnTime = 1000;
 
@@ -1038,11 +1036,11 @@ var main = function () {
     var now = Date.now();
     var delta = (now - last);
     last = now;
-    if (!isGameRunning){
+    if (!isGameRunning) {
         bgAudio.pause();
         mainMenu(); //only run main menu if start was not hit; for now ;) 
     }
-    
+
 
     handleInput();
     // Update game objects
@@ -1058,11 +1056,11 @@ var main = function () {
     // console.log(enemyCount);
     // console.log(requiredSpawnTime)
 
-    if (((enemies.length%10)===0)&&(lastEnemySpawn>requiredSpawnTime)){// allows more enemies to be on the screen at 
-        requiredNumberOfEnemies++;                                     // a time for every 10 kills you get and speeds their spawn time too
-        if (requiredSpawnTime>500)
-            requiredSpawnTime-=20;
-        }
+    if (((enemies.length % 10) === 0) && (lastEnemySpawn > requiredSpawnTime)) { // allows more enemies to be on the screen at 
+        requiredNumberOfEnemies++; // a time for every 10 kills you get and speeds their spawn time too
+        if (requiredSpawnTime > 500)
+            requiredSpawnTime -= 20;
+    }
 };
 
 // Start the main game loop!
