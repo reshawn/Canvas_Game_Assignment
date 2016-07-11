@@ -9,6 +9,87 @@ var ctx = canvas.getContext("2d");
 //keyboard events
 var keysDown = {};
 
+//Mock Keyboard Events using the Gamepad API
+var gamepadInput = {
+    0: false,
+    1: false,
+    2: false,
+    3: false,
+    4: false,
+    5: false,
+    6: false,
+    7: false,
+    8: false,
+    9: false,
+    10: false,
+    11: false,
+    12: false,
+    13: false,
+    14: false,
+    15: false
+}
+var pollGamepad = function(){
+    var gamepad = navigator.getGamepads()[0];
+    if(gamepad === undefined) return;
+    var buttons = gamepad.buttons;
+    for(var i = 0; i < buttons.length; i++){
+        if(gamepadInput[i] !== buttons[i].pressed){ //The value is different from the last state change
+            gamepadInput[i] = buttons[i].pressed; //Change to new value
+            var key;
+            switch(i){
+                case 12: //Up
+                    key = 38;
+                    break;
+                case 13: //Down
+                    key = 40;
+                    break;
+                case 14: //Left
+                    key = 37;
+                    break;
+                case 15: //Right
+                    key = 39;
+                    break;
+                case 0: //A
+                    key = 32; //Space
+                    break;
+                case 1: //B
+                    key = 90; //Z
+                    break;
+                case 4: //Left Bumper
+                    key = 80; //P
+                    break;
+                case 5: //Right Bumper
+                    key = 85; //U
+                    break;
+                case 8:
+                    key = 27; //ESC
+                    break;
+                case 9: //Start
+                    key = 13; //Enter
+                    break; 
+                default:
+                    return;
+            }
+            //Fake a keyboard event being fired
+            var eventType = buttons[i].pressed ? "keydown" : "keyup";
+            var event = document.createEvent("KeyboardEvent");
+            Object.defineProperty(event, "keyCode", {
+                get : function() {
+                    return this.keyCodeVal;
+                }
+            });
+            Object.defineProperty(event, "which", {
+                get : function() {
+                    return this.keyCodeVal;
+                }
+            });
+            var initMethod = typeof event.initKeyboardEvent !== "undefined" ? "initKeyboardEvent" : "initKeyEvent";
+            event[initMethod](eventType, true, true, window, false, false, false, false, key, 0);
+            event.keyCodeVal = key;
+            window.dispatchEvent(event);
+        }
+    }
+}
 
 addEventListener("keydown", function (e) {
     keysDown[e.keyCode] = true;
@@ -652,12 +733,11 @@ enemyHurtSound.volume = 1;
 
 // end of sound stuff ********************************************************************************************************************
 
-
 var handleInput = function () {
-    // Stop moving the playa
-    knight.direction = 0;
-
     if (isGameRunning) {
+        // Stop moving the playa
+        knight.direction = 0;
+
         if (37 in keysDown && !knight.isAttacking) { // left arrow key
             knight.direction = -1;
             knight.still = false;
@@ -738,15 +818,10 @@ var handleInput = function () {
             whichHover = "howTo";
             delete keysDown[38];
         }
-
-
-    }
-
-    if (isOnInstr) {
+    } else if (isOnInstr) {
         if (27 in keysDown) //Esc to go back to main menu
             isOnInstr = false;
-    }
-    if (isOnStory) {
+    } else if (isOnStory) {
         if (27 in keysDown) //Esc to go back to main menu
             isOnStory = false;
     }
@@ -903,7 +978,7 @@ var main = function () {
         mainMenu(); //only run main menu if start was not hit; for now ;)
     }
 
-
+    pollGamepad();
     handleInput();
     // Update game objects
     if (isGameRunning && !isPause) { //only run game loop if start was hit and the game is unpaused
