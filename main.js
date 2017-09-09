@@ -27,10 +27,10 @@ var gamepadInput = {
     13: false,
     14: false,
     15: false
-}
+};
 var pollGamepad = function(){
     var gamepad = navigator.getGamepads()[0];
-    if(gamepad === undefined) return;
+    if(!gamepad || !gamepad.buttons) return;
     var buttons = gamepad.buttons;
     for(var i = 0; i < buttons.length; i++){
         if(gamepadInput[i] !== buttons[i].pressed){ //The value is different from the last state change
